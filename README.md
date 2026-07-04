@@ -9,7 +9,7 @@ It understands what it sees (via Claude, Anthropic's AI), so it does far more th
 - Reads medicine labels and medical material **exactly as printed** — dosages and numbers are never paraphrased.
 - Describes diagrams, charts, and pictures in line ("There is a diagram here showing…").
 - Translates foreign-language text aloud and says what language it was.
-- **Ask**: after any reading, press one button and ask a question out loud — *"What's the dosage?"*, *"When does this expire?"*, *"Summarize this page"* — and hear the answer.
+- **Ask**: press one button any time and ask out loud about whatever the camera sees — *"What page is this book open to?"*, *"What's the dosage?"*, *"Summarize this page"* — and hear the answer. No need to read first.
 - Gives spoken camera-aiming coaching: *"I can see the top of the page but the bottom is cut off. Tilt the phone down a little and tap again."*
 
 Speech output uses the phone's **free built-in voices** (works offline, costs nothing). The only running cost is the AI reading itself — roughly **a few cents per photo** on best quality, or **well under a cent** on the budget model.
@@ -23,7 +23,7 @@ Speech output uses the phone's **free built-in voices** (works offline, costs no
 3. Tap again while it's talking to make it stop.
 4. Three big buttons across the bottom, left to right:
    - **Again** — continues from the sentence where the voice stopped, or repeats the reading.
-   - **Ask** — ask a spoken question about what was just read.
+   - **Ask** — ask a spoken question about whatever the camera is pointed at ("what page is this book open to?"), or about what was just read.
    - **Help** — the app explains itself out loud. (Holding a finger anywhere on the main screen also speaks help.)
 5. **Slide a finger up** the screen to make the voice talk faster, **down** to slow it — the confirmation is spoken at the new speed.
 6. Reading a book? After each page it says *"Turn the page and tap to continue."*

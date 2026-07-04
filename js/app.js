@@ -39,7 +39,7 @@ const HELP_TEXT =
   'Tap again while it is talking to make it stop. ' +
   'Along the bottom edge of the screen there are three wide buttons, side by side. ' +
   'The left button is Again. It continues from where the voice stopped, or repeats the reading. ' +
-  'The middle button is Ask. After a reading, press it and ask a question out loud, for example, what is the dosage. ' +
+  'The middle button is Ask. Press it any time and ask a question out loud about whatever the camera is pointed at, for example, what page is this book open to, or what is the dosage. ' +
   'The right button is this help. ' +
   'To make the voice talk faster, slide one finger up the screen. To slow it down, slide down. ' +
   'When a picture does not come out well, I will tell you how to move the phone. Take your time, and tap to try again.';
@@ -196,10 +196,6 @@ async function askQuestion() {
   await ensureReady();
   stopSpeaking();
 
-  if (!lastImage) {
-    announce('Read something first, then ask me about it.');
-    return;
-  }
   if (!recognitionSupported()) {
     announce('Voice questions are not supported in this browser. Try Chrome on Android or Safari on iPhone.');
     return;
@@ -224,13 +220,35 @@ async function askQuestion() {
   }
 
   el.askButton.setAttribute('aria-pressed', 'false');
+
+  // Photograph whatever is in front of the camera right now, so questions
+  // like "what page is the book open to" work without reading first.
+  let currentImage = null;
+  if (cameraRunning() || await startCamera(el.preview)) {
+    sounds.shutter();
+    currentImage = captureFrame();
+  }
+  if (!currentImage && !lastImage) {
+    sounds.errorBuzz();
+    setBigState('Tap to read');
+    state = 'idle';
+    announce('The camera did not give me a picture to look at. Please try again.');
+    return;
+  }
+
   state = 'working';
   setBigState('Thinking…', true);
   el.caption.textContent = 'Q: ' + question;
   sounds.startWorkingTicks();
 
   try {
-    const answer = await askAboutImage(lastImage, lastReading, question);
+    const answer = await askAboutImage({
+      currentImage: currentImage || lastImage,
+      previousImage: lastImage,
+      previousReading: lastReading,
+      question,
+    });
+    if (currentImage) lastImage = currentImage;
     sounds.stopWorkingTicks();
     state = 'idle';
     sounds.successDing();

@@ -43,7 +43,7 @@ const READ_SCHEMA = {
   },
 };
 
-const ASK_SYSTEM = `You are the vision engine inside "Blind Reader", an app for a completely blind user. They photographed something, heard it read aloud, and now ask a follow-up question about it. Answer from the image (and the earlier reading) only; if the answer is not visible, say so plainly and suggest how to re-aim the camera to capture it. Your answer is spoken aloud by text-to-speech: plain conversational sentences, no markdown or formatting, and be precise with any numbers, dosages, dates, or names. Keep it brief unless detail was requested.`;
+const ASK_SYSTEM = `You are the vision engine inside "Blind Reader", an app for a completely blind user. They asked a spoken question and the app took a photo of whatever the camera sees right now. Answer their question from that current photo. You may also receive an earlier photo and the transcript of the last thing read aloud — use those when the question refers back to it, and note the current photo may show a completely different scene or page than the earlier one. Typical questions: what page is this book open to, what is this object, what is the dosage, is anything expired, summarize this page. If the answer is not visible in any provided material, say so plainly and suggest how to aim the camera to capture it. Your answer is spoken aloud by text-to-speech: plain conversational sentences, no markdown or formatting, and be precise with any numbers, dosages, dates, or names. Keep it brief unless detail was requested.`;
 
 class ApiError extends Error {
   constructor(status, message) {
@@ -140,22 +140,30 @@ export async function readImage(base64Jpeg) {
   }
 }
 
-/** Follow-up question about the last photograph. Returns spoken answer text. */
-export async function askAboutImage(base64Jpeg, previousReading, question) {
+/**
+ * Spoken question about what the camera sees (and, if available, the last
+ * thing that was read). Returns spoken answer text.
+ */
+export async function askAboutImage({ currentImage, previousImage, previousReading, question }) {
+  const content = [];
+  if (previousImage && previousImage !== currentImage) {
+    content.push({ type: 'text', text: 'Earlier photo, from the last reading:' });
+    content.push(imageBlock(previousImage));
+  }
+  if (currentImage) {
+    content.push({ type: 'text', text: 'Current photo, what the camera sees right now:' });
+    content.push(imageBlock(currentImage));
+  }
+  let text = '';
+  if (previousReading) text += `The last thing read aloud to me was: "${previousReading}"\n\n`;
+  text += `My question: ${question}`;
+  content.push({ type: 'text', text });
+
   const response = await callClaude({
     model: modelId(loadSettings()),
     max_tokens: 16000,
     system: ASK_SYSTEM,
-    messages: [{
-      role: 'user',
-      content: [
-        imageBlock(base64Jpeg),
-        {
-          type: 'text',
-          text: `Earlier you read this to me from the photo: "${previousReading}"\n\nMy question: ${question}`,
-        },
-      ],
-    }],
+    messages: [{ role: 'user', content }],
   });
   return firstText(response);
 }
