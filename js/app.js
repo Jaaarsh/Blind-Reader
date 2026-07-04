@@ -359,12 +359,36 @@ function panic() {
 window.addEventListener('error', panic);
 window.addEventListener('unhandledrejection', e => { e.preventDefault(); panic(); });
 
+// A "#setup=..." fragment carries settings from a helper's setup link —
+// opening the link configures this phone with zero typing.
+function importSetupLink() {
+  const match = location.hash.match(/#setup=([A-Za-z0-9_-]+)/);
+  if (!match) return false;
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const b64 = match[1].replace(/-/g, '+').replace(/_/g, '/');
+    const imported = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    if (!imported || typeof imported !== 'object') return false;
+    saveSettings({ ...loadSettings(), ...imported });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Greet on first load. Speech can only start after a gesture on most phones,
 // so also show it on screen; the first tap will speak from then on.
 window.addEventListener('load', () => {
   setBigState('Tap to read');
-  el.caption.textContent = 'Blind Reader ready. Tap anywhere above to read. Hold your finger down for spoken help.';
-  el.status.textContent = el.caption.textContent;
+  if (importSetupLink()) {
+    el.caption.textContent = 'Setup complete — this phone is connected. Tap anywhere above to read.';
+    el.status.textContent = el.caption.textContent;
+    // Speak the confirmation as soon as a gesture allows it.
+    localStorage.removeItem(ONBOARD_KEY); // fresh phone → give the tour on first tap
+  } else {
+    el.caption.textContent = 'Blind Reader ready. Tap anywhere above to read. Hold your finger down for spoken help.';
+    el.status.textContent = el.caption.textContent;
+  }
   // Try to start the camera right away so the first read is instant; if the
   // permission prompt needs a gesture, ensureReady() retries on first tap.
   startCamera(el.preview).then(ok => { if (ok) firstInteraction = false; });

@@ -52,7 +52,15 @@ It also works fine **with** VoiceOver/TalkBack running (all controls are real, l
 ### Step 2 — Pick ONE of these two ways to run the app
 
 **Option A — simplest: key on the phone.**
-Host the files anywhere that serves HTTPS (GitHub Pages, Netlify, Cloudflare Pages — all free; just upload this folder). Open the site on the phone, tap the small **Setup** link in the top-right corner, paste the API key, press **Test the connection**, then **Save**. The key is stored only on that phone.
+Host the files anywhere that serves HTTPS. The easiest: this repo already contains a GitHub Pages workflow — merge to the default branch, then in the repo go to **Settings → Pages → Source → GitHub Actions**, and the app is live at `https://<user>.github.io/<repo>/` a minute later (Netlify/Cloudflare Pages work too).
+
+Then connect the phone **without typing anything on it**:
+
+1. Open `…/settings.html` on **your own computer**, paste the API key, press **Test the connection**, then **Save**.
+2. Press **Create setup link** and text/email that link to the phone.
+3. Open the link on the phone — it announces "Setup complete" and the app is ready. Delete the message afterwards (the link contains the key).
+
+The key is stored only on that phone. You can also do it directly on the phone via its Setup page if you prefer.
 
 **Option B — key on a server (nothing secret on the phone).**
 On any machine with [Node.js](https://nodejs.org) (a home PC, Raspberry Pi, or a free-tier cloud box):

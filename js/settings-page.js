@@ -67,6 +67,27 @@ function collect() {
   };
 }
 
+$('link-button').addEventListener('click', () => {
+  const payload = btoa(unescape(encodeURIComponent(JSON.stringify(collect()))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const base = location.href.replace(/settings\.html.*$/, '');
+  $('setup-link').value = `${base}#setup=${payload}`;
+  $('link-box').hidden = false;
+});
+
+$('copy-link').addEventListener('click', async () => {
+  const input = $('setup-link');
+  input.select();
+  try {
+    await navigator.clipboard.writeText(input.value);
+    $('copy-result').textContent = 'Copied. Paste it into a message to the phone.';
+  } catch {
+    document.execCommand('copy');
+    $('copy-result').textContent = 'Copied (or select the text above and copy it).';
+  }
+  setTimeout(() => { $('copy-result').textContent = ''; }, 5000);
+});
+
 $('save-button').addEventListener('click', () => {
   saveSettings(collect());
   const out = $('save-result');

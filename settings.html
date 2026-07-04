@@ -70,6 +70,16 @@
     <button id="save-button" class="primary" type="button">Save settings</button>
     <p id="save-result" role="status"></p>
 
+    <h2>Set up another phone without typing</h2>
+    <p>Doing setup for someone else? Fill in this page, then create a setup link and send it to their phone by text message or email. Opening the link on that phone configures the app instantly — nothing to type there.</p>
+    <button id="link-button" type="button">Create setup link</button>
+    <div id="link-box" hidden>
+      <label for="setup-link">Send this link to the phone, then delete the message afterwards (it contains the key):</label>
+      <input id="setup-link" type="text" readonly>
+      <button id="copy-link" type="button">Copy link</button>
+      <p id="copy-result" role="status"></p>
+    </div>
+
     <h2>Tips for the helper</h2>
     <p>Install the app on the home screen (browser menu &rarr; “Add to Home Screen”) so it opens full-screen with one touch. Consider placing it alone on the first home-screen page. Then walk through the Help button together once — the app explains itself out loud (it also gives a spoken tour automatically on the very first tap).</p>
     <p><strong>Strongly recommended — lock the phone into this app</strong> so a stray touch can never leave it:</p>
