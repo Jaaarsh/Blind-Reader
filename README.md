@@ -109,6 +109,12 @@ The first tap plays a spoken tour automatically. Practice one page, one "Ask" qu
 
 ---
 
+## Troubleshooting
+
+- **"This app has not been set up yet" / reading errors in a new browser or phone:** settings (including the key) are stored per browser, per device. Open the setup link in that browser once, or fill in its Setup page. The setup link is reusable — keep it somewhere private.
+- **Ask says voice questions aren't supported:** the browser lacks voice input. Firefox doesn't support it on any website; use Chrome, Edge, or Safari. Reading itself works everywhere.
+- **Camera won't open:** the site must be served over HTTPS (GitHub Pages is), and the browser needs camera permission — check the padlock icon next to the address.
+
 ## Costs, kept honest
 
 | Item | Cost |
