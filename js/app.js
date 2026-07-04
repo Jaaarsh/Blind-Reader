@@ -45,7 +45,13 @@ const HELP_TEXT =
   'The middle button is Ask. Press it any time and ask a question out loud about whatever the camera is pointed at, for example, what page is this book open to, or what is the dosage. You can also ask about things that are not on the page, and I will answer from general knowledge and say so. ' +
   'The right button is this help. ' +
   'To make the voice talk faster, slide one finger up the screen. To slow it down, slide down. ' +
+  'On a computer keyboard, the space bar reads or stops the voice, Enter continues, the letter A asks, the letter H is help, and the up and down arrows change the speed. ' +
   'When a picture does not come out well, I will tell you how to move the phone. Take your time, and tap to try again.';
+
+const KEY_GUIDE =
+  'Keyboard controls. The space bar takes a picture and reads it, or stops the voice. ' +
+  'Enter continues the reading or repeats it. The letter A asks a question. The letter H speaks the help. ' +
+  'The up and down arrow keys make the voice faster or slower.';
 
 /* ------------------------------ speech + UI ------------------------------ */
 
@@ -82,7 +88,7 @@ async function ensureReady() {
   if (firstInteraction) {
     firstInteraction = false;
     keepAwake();
-    await startCamera(el.preview);
+    await startCamera(el.preview, settings.cameraId);
   }
 }
 
@@ -117,7 +123,7 @@ async function captureAndRead() {
   } else {
     // No live camera (permission denied / unsupported): use the native
     // camera app through the file input instead.
-    const started = await startCamera(el.preview);
+    const started = await startCamera(el.preview, loadSettings().cameraId);
     if (started) {
       sounds.shutter();
       image = captureFrame();
@@ -175,6 +181,7 @@ async function processImage(image) {
 
 async function repeatLast() {
   if (state === 'working') { speak('Still working. One moment.'); return; }
+  if (state === 'listening') return;
   await ensureReady();
 
   // Pressing Again while the reading itself is playing restarts it (below).
@@ -229,7 +236,7 @@ async function askQuestion() {
   // Photograph whatever is in front of the camera right now, so questions
   // like "what page is the book open to" work without reading first.
   let currentImage = null;
-  if (cameraRunning() || await startCamera(el.preview)) {
+  if (cameraRunning() || await startCamera(el.preview, loadSettings().cameraId)) {
     sounds.shutter();
     currentImage = captureFrame();
   }
@@ -374,6 +381,37 @@ el.fileFallback.addEventListener('change', async () => {
   }
 });
 
+// Keyboard controls, so the whole app works from a PC with a webcam:
+// Space = read/stop, Enter = again, A = ask, H = help, arrows = speed.
+// Any other key speaks the key guide, so he can never be lost at a keyboard.
+let lastKeyGuide = 0;
+window.addEventListener('keydown', e => {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  if (e.repeat) { e.preventDefault(); return; }
+
+  // Blur any focused button so the browser doesn't also "click" it.
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
+  const k = e.key;
+  if (k === ' ' || k === 'Spacebar') { e.preventDefault(); captureAndRead(); }
+  else if (k === 'Enter') { e.preventDefault(); repeatLast(); }
+  else if (k === 'a' || k === 'A') { e.preventDefault(); askQuestion(); }
+  else if (k === 'h' || k === 'H' || k === '?') { e.preventDefault(); speakHelp(); }
+  else if (k === 'ArrowUp') { e.preventDefault(); sounds.unlockAudio(); changeSpeed(+1); }
+  else if (k === 'ArrowDown') { e.preventDefault(); sounds.unlockAudio(); changeSpeed(-1); }
+  else if (k.length === 1 || k.startsWith('Arrow')) {
+    // An unknown key must never be silence — teach the mapping instead.
+    e.preventDefault();
+    const now = Date.now();
+    if (now - lastKeyGuide > 5000 && state !== 'listening') {
+      lastKeyGuide = now;
+      ensureReady().then(() => { stopSpeaking(); announce(KEY_GUIDE); });
+    }
+  }
+});
+
 // Last-resort safety net: an unexpected crash must never leave silence.
 let lastPanic = 0;
 function panic() {
@@ -423,5 +461,5 @@ window.addEventListener('load', () => {
   }
   // Try to start the camera right away so the first read is instant; if the
   // permission prompt needs a gesture, ensureReady() retries on first tap.
-  startCamera(el.preview).then(ok => { if (ok) firstInteraction = false; });
+  startCamera(el.preview, loadSettings().cameraId).then(ok => { if (ok) firstInteraction = false; });
 });

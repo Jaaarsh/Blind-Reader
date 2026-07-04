@@ -41,6 +41,32 @@ if ('speechSynthesis' in window) {
   speechSynthesis.onvoiceschanged = populateVoices;
 }
 
+async function populateCameras() {
+  const select = $('camera');
+  while (select.options.length > 1) select.remove(1);
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  let i = 0;
+  for (const d of devices) {
+    if (d.kind !== 'videoinput') continue;
+    i += 1;
+    const opt = document.createElement('option');
+    opt.value = d.deviceId;
+    opt.textContent = d.label || `Camera ${i}`;
+    if (d.deviceId === settings.cameraId) opt.selected = true;
+    select.appendChild(opt);
+  }
+}
+
+$('detect-cameras').addEventListener('click', async () => {
+  // Camera labels only appear after permission is granted once.
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: true });
+    s.getTracks().forEach(t => t.stop());
+  } catch { /* denied — list may show unnamed entries */ }
+  await populateCameras();
+});
+if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) populateCameras();
+
 $('rate').addEventListener('input', () => {
   $('rate-value').textContent = Number($('rate').value).toFixed(1);
 });
@@ -64,6 +90,7 @@ function collect() {
     speechRate: Number($('rate').value),
     voiceURI: $('voice').value,
     language: $('language').value,
+    cameraId: $('camera').value,
   };
 }
 

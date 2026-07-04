@@ -7,27 +7,30 @@ const JPEG_QUALITY = 0.85;
 let stream = null;
 let videoEl = null;
 
-export async function startCamera(video) {
+export async function startCamera(video, deviceId = '') {
   videoEl = video;
   if (stream) return true;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 2560 },
-        height: { ideal: 1440 },
-      },
-    });
-    video.srcObject = stream;
-    await video.play().catch(() => {});
-    return true;
-  } catch (err) {
-    stream = null;
-    console.warn('camera failed', err);
-    return false;
+
+  const size = { width: { ideal: 2560 }, height: { ideal: 1440 } };
+  const attempts = [];
+  // A specific camera chosen in Setup (e.g. the document webcam on a PC)…
+  if (deviceId) attempts.push({ deviceId: { exact: deviceId }, ...size });
+  // …falling back to the rear camera on phones / default camera on PCs.
+  attempts.push({ facingMode: { ideal: 'environment' }, ...size });
+
+  for (const videoConstraints of attempts) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: videoConstraints });
+      video.srcObject = stream;
+      await video.play().catch(() => {});
+      return true;
+    } catch (err) {
+      stream = null;
+      console.warn('camera attempt failed', err);
+    }
   }
+  return false;
 }
 
 export function cameraRunning() {

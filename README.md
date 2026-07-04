@@ -109,6 +109,25 @@ The first tap plays a spoken tour automatically. Practice one page, one "Ask" qu
 
 ---
 
+## Using it on a PC (webcam + keyboard)
+
+The same app works great on a computer — often better for someone who prefers big physical keys over a touchscreen:
+
+1. **Camera:** point a webcam down at the desk (a gooseneck webcam stand or a "document camera" works perfectly; a laptop's built-in camera can also be aimed at a book propped in front of it).
+2. **Browser:** open the same app URL in Chrome or Edge (voice questions don't work in Firefox). Do setup via the same setup link, or the Setup page.
+3. **Pick the right camera:** Setup page → "Camera" → Detect cameras → choose the document webcam → Save.
+4. **Keyboard controls** (pressing any other key speaks this list out loud):
+
+| Key | Action |
+|---|---|
+| **Space bar** | Take a picture and read it / stop the voice |
+| **Enter** | Continue where the voice stopped, or repeat |
+| **A** | Ask a spoken question |
+| **H** | Help, spoken |
+| **Up / Down arrows** | Voice faster / slower |
+
+A useful desk setup: book flat on the desk, webcam above it, space bar within reach — reading a book becomes *turn page, press space, listen*.
+
 ## Troubleshooting
 
 - **"This app has not been set up yet" / reading errors in a new browser or phone:** settings (including the key) are stored per browser, per device. Open the setup link in that browser once, or fill in its Setup page. The setup link is reusable — keep it somewhere private.

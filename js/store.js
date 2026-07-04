@@ -16,6 +16,7 @@ const DEFAULTS = {
   speechRate: 1.0,       // 0.5 .. 2.0
   voiceURI: '',          // preferred speechSynthesis voice, empty = system default
   language: 'en',        // primary language of the user, used for speech recognition
+  cameraId: '',          // specific camera device (e.g. a PC document webcam)
 };
 
 export function loadSettings() {
