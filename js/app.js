@@ -7,7 +7,8 @@ import { loadSettings, saveSettings } from './store.js';
 import { startCamera, cameraRunning, captureFrame, fileToBase64Jpeg } from './camera.js';
 import {
   speak, stopSpeaking, isSpeaking, configureSpeech,
-  hasPendingReading, resumeReading, listenOnce, recognitionSupported,
+  hasPendingReading, resumeReading, isReadingActive,
+  listenOnce, recognitionSupported,
 } from './speech.js';
 import { readImage, askAboutImage, explainError } from './claude.js';
 import * as sounds from './sounds.js';
@@ -32,6 +33,7 @@ let lastImage = null;    // base64 JPEG of the last capture
 let lastReading = '';    // last spoken content
 let firstInteraction = true;
 let pageHintsGiven = 0;  // "turn the page" nudges per session
+let resumeHintsGiven = 0; // "press Again to continue" nudges per session
 
 const HELP_TEXT =
   'Here is how Blind Reader works. Hold the phone about a foot above a page, sign, or label, ' +
@@ -174,15 +176,17 @@ async function repeatLast() {
   if (state === 'working') { speak('Still working. One moment.'); return; }
   await ensureReady();
 
-  // Stopped mid-reading? Continue from that sentence instead of restarting.
-  if (!isSpeaking() && hasPendingReading()) {
+  // Pressing Again while the reading itself is playing restarts it (below).
+  // In every other case — silence, or some other speech like an Ask answer
+  // playing — a paused reading continues from the interrupted sentence.
+  const readingWasPlaying = isReadingActive();
+  stopSpeaking();
+  if (!readingWasPlaying && hasPendingReading()) {
     el.status.textContent = 'Continuing.';
     await speak('Continuing.');
     await resumeReading();
     return;
   }
-
-  stopSpeaking();
   if (!lastReading) {
     announce('Nothing has been read yet. Point the camera and tap the top of the screen.');
     return;
@@ -253,7 +257,13 @@ async function askQuestion() {
     state = 'idle';
     sounds.successDing();
     setBigState('Tap to read');
-    await announce(answer, { resumable: true });
+    // Spoken non-resumable on purpose: a paused reading keeps its place, so
+    // "Again" continues the book where it left off, not the answer.
+    await announce(answer);
+    if (hasPendingReading() && resumeHintsGiven < 2) {
+      resumeHintsGiven += 1;
+      await speak('To continue the reading where it stopped, press the left button, Again.');
+    }
   } catch (err) {
     sounds.stopWorkingTicks();
     state = 'idle';

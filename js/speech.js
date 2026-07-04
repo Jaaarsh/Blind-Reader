@@ -10,6 +10,7 @@ let preferredVoiceURI = '';
 let speakingNow = false;
 let onSpeechEnd = null;  // interrupts the active run
 let resumable = null;    // { chunks, index } of the last stoppable reading
+let activeRun = null;    // the run currently being spoken
 
 export function configureSpeech({ rate, voiceURI } = {}) {
   if (rate) currentRate = rate;
@@ -59,12 +60,14 @@ function runChunks(run) {
   if (!run.chunks.length || !('speechSynthesis' in window)) return Promise.resolve();
   return new Promise(resolve => {
     speakingNow = true;
+    activeRun = run;
     let finished = false;
 
     const done = naturally => {
       if (finished) return;
       finished = true;
       speakingNow = false;
+      if (activeRun === run) activeRun = null;
       onSpeechEnd = null;
       if (naturally && run === resumable) resumable = null; // fully read out
       resolve();
@@ -112,6 +115,11 @@ export function stopSpeaking() {
 /** True when a reading was stopped partway and can be continued. */
 export function hasPendingReading() {
   return Boolean(!speakingNow && resumable && resumable.index < resumable.chunks.length);
+}
+
+/** True while the resumable reading itself is the thing currently speaking. */
+export function isReadingActive() {
+  return Boolean(speakingNow && activeRun && activeRun === resumable);
 }
 
 /** Continue the interrupted reading from where it stopped. */
