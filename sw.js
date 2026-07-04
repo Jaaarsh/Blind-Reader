@@ -1,7 +1,7 @@
 // Service worker: cache the app shell so Blind Reader opens instantly and
 // still launches with no signal (the reading itself needs the network).
 
-const CACHE = 'blind-reader-v9';
+const CACHE = 'blind-reader-v10';
 const SHELL = [
   'index.html',
   'settings.html',

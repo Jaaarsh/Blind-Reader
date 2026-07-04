@@ -92,6 +92,25 @@ async function ensureReady() {
   }
 }
 
+// A blind user can't see the battery icon — warn out loud, once per session,
+// when it's low and unplugged (supported on Android/Chrome; silent elsewhere).
+let batteryChecked = false;
+async function warnIfBatteryLow() {
+  if (batteryChecked || !navigator.getBattery) return false;
+  batteryChecked = true;
+  try {
+    const battery = await navigator.getBattery();
+    if (battery.level <= 0.15 && !battery.charging) {
+      await announce(
+        `One note before we start: the battery is at ${Math.round(battery.level * 100)} percent. ` +
+        'Please plug in the charger soon so the reader does not shut off. Now, tap to read.'
+      );
+      return true;
+    }
+  } catch { /* not supported here */ }
+  return false;
+}
+
 async function captureAndRead() {
   if (state === 'working') {
     // Never silent: a confused tap during processing gets a calm answer.
@@ -108,6 +127,8 @@ async function captureAndRead() {
     await announce('Welcome to Blind Reader. ' + HELP_TEXT + ' That is everything. Now, tap anywhere to read your first page.');
     return;
   }
+
+  if (await warnIfBatteryLow()) return;
 
   // A tap while speaking means "stop talking" — the next tap reads.
   if (isSpeaking()) {
