@@ -4,7 +4,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, claude/blind-first-document-reader-eta2r7]
   workflow_dispatch:
 
 permissions:
