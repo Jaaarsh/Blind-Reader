@@ -6,7 +6,19 @@ const $ = id => document.getElementById(id);
 const settings = loadSettings();
 
 $('api-key').value = settings.apiKey;
+$('server-code').value = settings.serverCode || '';
 $('mode').value = settings.mode;
+
+// If a blind user lands here by accident, orient them out loud.
+// (May be muted by autoplay rules on some phones; the giant back link and the
+// double-tap guard on the main screen are the primary protections.)
+try {
+  const u = new SpeechSynthesisUtterance(
+    'This is the setup page, meant for a sighted helper. To go back to the reader, tap the very top left of the screen.'
+  );
+  u.rate = Number(settings.speechRate) || 1;
+  speechSynthesis.speak(u);
+} catch { /* fine */ }
 $('model').value = settings.modelChoice;
 $('rate').value = settings.speechRate;
 $('rate-value').textContent = Number(settings.speechRate).toFixed(1);
@@ -46,6 +58,7 @@ function collect() {
   return {
     ...settings,
     apiKey: $('api-key').value.trim(),
+    serverCode: $('server-code').value.trim(),
     mode: $('mode').value,
     modelChoice: $('model').value,
     speechRate: Number($('rate').value),
@@ -89,11 +102,9 @@ $('test-button').addEventListener('click', async () => {
         body: JSON.stringify(body),
       });
     } else {
-      res = await fetch('api/read', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const headers = { 'content-type': 'application/json' };
+      if (s.serverCode) headers['x-reader-code'] = s.serverCode;
+      res = await fetch('api/read', { method: 'POST', headers, body: JSON.stringify(body) });
     }
     if (res.ok) {
       out.className = 'ok';

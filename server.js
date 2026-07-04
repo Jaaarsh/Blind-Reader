@@ -19,7 +19,25 @@ const path = require('path');
 
 const PORT = Number(process.env.PORT || 8787);
 const API_KEY = process.env.ANTHROPIC_API_KEY || '';
+// Optional: set READER_PASSCODE to any phrase to stop strangers from using
+// your API credit if this server is reachable from the internet. Enter the
+// same phrase once in the app's Setup page ("Server passcode").
+const PASSCODE = process.env.READER_PASSCODE || '';
 const ROOT = __dirname;
+
+// Gentle rate limit: far above real reading pace, low enough to stop abuse.
+const RATE_LIMIT = 40;              // requests…
+const RATE_WINDOW_MS = 10 * 60000;  // …per 10 minutes per address
+const rateLog = new Map();          // ip -> [timestamps]
+
+function rateLimited(ip) {
+  const now = Date.now();
+  const log = (rateLog.get(ip) || []).filter(t => now - t < RATE_WINDOW_MS);
+  log.push(now);
+  rateLog.set(ip, log);
+  if (rateLog.size > 5000) rateLog.clear(); // memory cap; resets counters
+  return log.length > RATE_LIMIT;
+}
 
 // Guard rails on the proxy: only the models the app offers, bounded output.
 const ALLOWED_MODELS = new Set(['claude-opus-4-8', 'claude-haiku-4-5']);
@@ -85,6 +103,14 @@ async function handleRead(req, res) {
     json(res, 500, { error: { message: 'Server is missing ANTHROPIC_API_KEY.' } });
     return;
   }
+  if (PASSCODE && req.headers['x-reader-code'] !== PASSCODE) {
+    json(res, 401, { error: { message: 'Bad or missing server passcode.' } });
+    return;
+  }
+  if (rateLimited(req.socket.remoteAddress || 'unknown')) {
+    json(res, 429, { error: { message: 'Too many requests. Wait a few minutes.' } });
+    return;
+  }
   let payload;
   try {
     payload = JSON.parse((await readBody(req, MAX_BODY_BYTES)).toString('utf8'));
@@ -117,7 +143,7 @@ function serveStatic(req, res) {
 const server = http.createServer((req, res) => {
   const pathname = new URL(req.url, 'http://x').pathname;
   if (pathname === '/api/read' && req.method === 'POST') { handleRead(req, res); return; }
-  if (pathname === '/api/health') { json(res, 200, { ok: true, keyConfigured: Boolean(API_KEY) }); return; }
+  if (pathname === '/api/health') { json(res, 200, { ok: true, keyConfigured: Boolean(API_KEY), needsCode: Boolean(PASSCODE) }); return; }
   if (req.method === 'GET' || req.method === 'HEAD') { serveStatic(req, res); return; }
   res.writeHead(405); res.end();
 });

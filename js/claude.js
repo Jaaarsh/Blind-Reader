@@ -51,17 +51,26 @@ class ApiError extends Error {
   }
 }
 
+function usingDirect(settings) {
+  return settings.mode === 'direct' || (settings.mode === 'auto' && settings.apiKey);
+}
+
+// Never leave a blind user waiting forever: hard timeout on every request.
+const REQUEST_TIMEOUT_MS = 90000;
+
 async function callClaude(body) {
   const settings = loadSettings();
-  const useDirect =
-    settings.mode === 'direct' ||
-    (settings.mode === 'auto' && settings.apiKey);
+  const useDirect = usingDirect(settings);
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
 
   let res;
   try {
     if (useDirect) {
       res = await fetch(ANTHROPIC_URL, {
         method: 'POST',
+        signal: ctrl.signal,
         headers: {
           'content-type': 'application/json',
           'x-api-key': settings.apiKey,
@@ -72,14 +81,19 @@ async function callClaude(body) {
         body: JSON.stringify(body),
       });
     } else {
+      const headers = { 'content-type': 'application/json' };
+      if (settings.serverCode) headers['x-reader-code'] = settings.serverCode;
       res = await fetch('api/read', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        signal: ctrl.signal,
+        headers,
         body: JSON.stringify(body),
       });
     }
-  } catch {
-    throw new ApiError(0, 'network');
+  } catch (err) {
+    throw new ApiError(err && err.name === 'AbortError' ? -1 : 0, 'network');
+  } finally {
+    clearTimeout(timer);
   }
 
   if (!res.ok) {
@@ -148,10 +162,16 @@ export async function askAboutImage(base64Jpeg, previousReading, question) {
 /** Turn an API failure into a sentence a blind user can act on. */
 export function explainError(err) {
   const status = err && err.status;
+  const direct = usingDirect(loadSettings());
+  if (status === -1) return 'That took too long. Please tap to try again.';
   if (status === 0) return 'I could not reach the internet. Please check the connection, then tap to try again.';
-  if (status === 401 || status === 403) return 'The access key was rejected. Please ask your helper to open Setup and check the key.';
-  if (status === 429) return 'The reading service says we are going too fast. Please wait a moment, then tap to try again.';
-  if (status === 404 && !loadSettings().apiKey) return 'This app has not been set up yet. Please ask a sighted helper to open the Setup page and add an access key.';
+  if (status === 401 || status === 403) {
+    return direct
+      ? 'The access key was rejected. Please ask your helper to open Setup and check the key.'
+      : 'The reading server would not let this phone in. Please ask your helper to check the passcode in Setup.';
+  }
+  if (status === 429) return 'The reading service says we are going too fast. Please wait a minute, then tap to try again.';
+  if (status === 404 && !direct) return 'This app has not been set up yet. Please ask a sighted helper to open the Setup page.';
   if (status >= 500) return 'The reading service had a temporary problem. Please tap to try again.';
   return 'Something went wrong while reading. Please tap to try again.';
 }

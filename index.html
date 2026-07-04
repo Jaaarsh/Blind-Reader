@@ -11,6 +11,7 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Reader">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -29,13 +30,13 @@
     <p id="status" class="visually-hidden" role="status" aria-live="polite"></p>
 
     <nav class="bottom-bar" aria-label="Reader controls">
-      <button id="again-button" aria-label="Again. Hear the last reading again.">Again</button>
+      <button id="again-button" aria-label="Again. Continue or repeat the last reading.">Again</button>
       <button id="ask-button" aria-label="Ask. Ask a question about what was just read.">Ask</button>
       <button id="help-button" aria-label="Help. Hear how to use this app.">Help</button>
     </nav>
 
     <!-- Small, visual-only link for the sighted helper doing one-time setup. -->
-    <a id="settings-link" href="settings.html" aria-label="Settings, for setup by a sighted helper">Setup</a>
+    <a id="settings-link" href="settings.html" aria-label="Setup, for a sighted helper. Activate twice to open.">Setup</a>
 
     <!-- Fallback capture path when live camera access is unavailable. -->
     <input id="file-fallback" type="file" accept="image/*" capture="environment" class="visually-hidden" aria-hidden="true" tabindex="-1">

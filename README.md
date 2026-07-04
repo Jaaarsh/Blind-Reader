@@ -18,18 +18,27 @@ Speech output uses the phone's **free built-in voices** (works offline, costs no
 
 ## How a blind person uses it (the whole manual)
 
-1. Hold the phone about 30 cm above the page, back of the phone facing the text.
+1. Hold the phone about a foot above the page, back of the phone facing the text.
 2. **Tap anywhere on the top of the screen.** The phone clicks (photo taken), ticks softly (thinking), then reads aloud.
 3. Tap again while it's talking to make it stop.
 4. Three big buttons across the bottom, left to right:
-   - **Again** — repeat the last reading.
+   - **Again** — continues from the sentence where the voice stopped, or repeats the reading.
    - **Ask** — ask a spoken question about what was just read.
    - **Help** — the app explains itself out loud. (Holding a finger anywhere on the main screen also speaks help.)
-5. If the photo was bad, the app says how to move the phone. No error codes, ever.
+5. **Slide a finger up** the screen to make the voice talk faster, **down** to slow it — the confirmation is spoken at the new speed.
+6. Reading a book? After each page it says *"Turn the page and tap to continue."*
+7. If the photo was bad, the app says how to move the phone. No error codes, ever.
 
-Every state change has a distinct sound and vibration: click = photo, soft ticking = thinking, rising ding = success, low buzz = try again.
+The **very first tap ever** gives a spoken tour automatically, so the app teaches itself. Every state change has a distinct sound and vibration: click = photo, soft ticking = thinking, rising ding = success, low buzz = try again.
 
 It also works fine **with** VoiceOver/TalkBack running (all controls are real, labeled buttons), but it does not require a screen reader.
+
+### Designed so nothing can go wrong solo
+
+- **Never silent:** a tap while it's thinking answers "Still working, one moment"; requests time out after 90 seconds with a spoken message; even an internal crash speaks ("close the app and open it again") instead of freezing quietly.
+- **Never lost:** the Setup link cannot be opened by a stray touch (a single tap explains it out loud; only a deliberate second tap opens it), the setup page announces itself and has a giant yellow "Back to the reader" button, and pull-to-refresh / zoom / text-selection are all disabled.
+- **Never asleep:** the app holds the screen awake while in use, and speech recovers automatically if the screen blanks mid-sentence.
+- **Nothing destructive exists:** every button only ever talks. There is nothing to delete, buy, send, or misconfigure from the reader screen.
 
 ---
 
@@ -54,15 +63,32 @@ ANTHROPIC_API_KEY=sk-ant-your-key node server.js
 
 That's the whole server — no installation, no dependencies. Open `http://<that-machine>:8787` on the phone.
 
+If the server is reachable from the internet, also set a passcode so strangers can't spend your API credit — and it rate-limits per address on top of that:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-your-key READER_PASSCODE="any phrase" node server.js
+```
+
+Enter the same phrase once on the phone's Setup page under "Server passcode".
+
 > **HTTPS note:** phone browsers only allow camera access over HTTPS (or on `localhost`). For Option B on a home network, the easiest fixes are a [Tailscale](https://tailscale.com) network with `tailscale serve` (free, one command), or any reverse proxy / tunnel that gives you an HTTPS URL. Static hosts in Option A are HTTPS already.
 
 ### Step 3 — Put it on the home screen
 
 In the phone's browser: **Share / menu → Add to Home Screen.** It installs like an app, opens full-screen, and works from a single touch. Consider making it the only icon on the first home-screen page.
 
-### Step 4 — Walk through it together once
+### Step 4 — Lock the phone into the app (strongly recommended)
 
-Press **Help** and listen together. Practice one page and one "Ask" question. That's it.
+For someone who can't see and doesn't love technology, the biggest risk is a stray touch leaving the app. Both platforms can physically pin the phone to Blind Reader:
+
+- **iPhone — Guided Access:** Settings → Accessibility → Guided Access → on (set a passcode only the helper knows). Open Blind Reader, then **triple-click the side button**. The phone now cannot leave the app until the helper triple-clicks again.
+- **Android — App pinning:** Settings → Security → App pinning → on. Open Blind Reader, open the recent-apps view, tap the app's icon → **Pin**.
+
+A cheap spare phone dedicated to nothing but this app + Guided Access is a genuinely great setup: it becomes a single-purpose reading machine with one physical action to learn ("pick it up, tap the screen").
+
+### Step 5 — Walk through it together once
+
+The first tap plays a spoken tour automatically. Practice one page, one "Ask" question, and the speed swipe. That's it.
 
 ### Settings worth knowing (on the Setup page)
 

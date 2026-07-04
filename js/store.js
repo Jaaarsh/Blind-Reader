@@ -10,6 +10,7 @@ export const MODELS = {
 
 const DEFAULTS = {
   apiKey: '',            // Anthropic API key for direct-from-phone mode
+  serverCode: '',        // optional passcode for this app's own server
   mode: 'auto',          // 'auto' | 'direct' | 'server'
   modelChoice: 'best',   // key into MODELS
   speechRate: 1.0,       // 0.5 .. 2.0

@@ -1,10 +1,15 @@
 // Text-to-speech and speech recognition, both from the free built-in Web
 // Speech APIs — no cloud cost, works offline on most phones.
+//
+// Readings are spoken as "resumable" runs: if the user taps to stop mid-page,
+// the position is remembered so "Again" continues from that sentence instead
+// of starting the whole page over.
 
 let currentRate = 1.0;
 let preferredVoiceURI = '';
 let speakingNow = false;
-let onSpeechEnd = null; // resolves the active speak() promise
+let onSpeechEnd = null;  // interrupts the active run
+let resumable = null;    // { chunks, index } of the last stoppable reading
 
 export function configureSpeech({ rate, voiceURI } = {}) {
   if (rate) currentRate = rate;
@@ -26,7 +31,8 @@ function pickVoice() {
 }
 
 // Long utterances get cut off on several engines (notably Chrome); splitting
-// into sentence-sized chunks avoids that and makes stop() feel instant.
+// into sentence-sized chunks avoids that, makes stop() feel instant, and
+// gives us natural resume points.
 function chunkText(text) {
   const clean = String(text).replace(/\s+/g, ' ').trim();
   if (!clean) return [];
@@ -49,33 +55,32 @@ function chunkText(text) {
   return chunks;
 }
 
-/**
- * Speak text aloud. Interrupts anything currently being spoken.
- * Resolves when done speaking (or when interrupted).
- */
-export function speak(text) {
-  stopSpeaking();
-  const chunks = chunkText(text);
-  if (!chunks.length || !('speechSynthesis' in window)) return Promise.resolve();
-
+function runChunks(run) {
+  if (!run.chunks.length || !('speechSynthesis' in window)) return Promise.resolve();
   return new Promise(resolve => {
     speakingNow = true;
-    let index = 0;
     let finished = false;
 
-    const done = () => {
+    const done = naturally => {
       if (finished) return;
       finished = true;
       speakingNow = false;
       onSpeechEnd = null;
+      if (naturally && run === resumable) resumable = null; // fully read out
       resolve();
     };
-    onSpeechEnd = done;
+
+    // Interruption: remember the chunk that was cut off so resume repeats it.
+    onSpeechEnd = () => {
+      if (run === resumable && run.index > 0) run.index -= 1;
+      done(false);
+    };
 
     const next = () => {
       if (finished) return;
-      if (index >= chunks.length) { done(); return; }
-      const u = new SpeechSynthesisUtterance(chunks[index++]);
+      if (run.index >= run.chunks.length) { done(true); return; }
+      const u = new SpeechSynthesisUtterance(run.chunks[run.index]);
+      run.index += 1;
       u.rate = currentRate;
       const voice = pickVoice();
       if (voice) u.voice = voice;
@@ -87,15 +92,45 @@ export function speak(text) {
   });
 }
 
+/**
+ * Speak text aloud, interrupting anything currently being spoken.
+ * Pass { resumable: true } for content readings so a stop can be resumed.
+ * Resolves when done speaking (or when interrupted).
+ */
+export function speak(text, { resumable: isResumable = false } = {}) {
+  stopSpeaking();
+  const run = { chunks: chunkText(text), index: 0 };
+  if (isResumable) resumable = run;
+  return runChunks(run);
+}
+
 export function stopSpeaking() {
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
   if (onSpeechEnd) onSpeechEnd();
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+}
+
+/** True when a reading was stopped partway and can be continued. */
+export function hasPendingReading() {
+  return Boolean(!speakingNow && resumable && resumable.index < resumable.chunks.length);
+}
+
+/** Continue the interrupted reading from where it stopped. */
+export function resumeReading() {
+  if (!resumable) return Promise.resolve();
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  return runChunks(resumable);
 }
 
 // iOS/Safari populates the voice list asynchronously; poke it early.
 if ('speechSynthesis' in window) {
   speechSynthesis.getVoices();
   speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+  // Some engines silently pause when the screen blanks; nudge them back.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      try { speechSynthesis.resume(); } catch {}
+    }
+  });
 }
 
 /* ---------------- Speech recognition (for the Ask feature) --------------- */

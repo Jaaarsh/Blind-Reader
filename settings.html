@@ -9,7 +9,7 @@
 </head>
 <body class="settings-page">
   <div class="settings-wrap">
-    <a class="back-link" href="index.html">&larr; Back to the reader</a>
+    <a class="back-link big-back" href="index.html">&larr; Back to the reader</a>
     <h1>Setup</h1>
     <p class="lede">This page is meant for a sighted helper doing one-time setup. After this, the reader itself needs no sight to use.</p>
 
@@ -19,6 +19,9 @@
     <label for="api-key">Anthropic API key</label>
     <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-...">
     <p class="hint">Create one at <a href="https://platform.claude.com" target="_blank" rel="noopener">platform.claude.com</a> (API keys section). The key is stored only on this device. Leave empty if you run the server with the key instead.</p>
+
+    <label for="server-code">Server passcode (only for Option B servers that set one)</label>
+    <input id="server-code" type="text" autocomplete="off" placeholder="leave empty unless your server uses READER_PASSCODE">
 
     <label for="mode">Connection mode</label>
     <select id="mode">
@@ -68,7 +71,12 @@
     <p id="save-result" role="status"></p>
 
     <h2>Tips for the helper</h2>
-    <p>Install the app on the home screen (browser menu &rarr; “Add to Home Screen”) so it opens full-screen with one touch. Consider placing it alone on the first home-screen page. Then walk through the Help button together once — the app explains itself out loud.</p>
+    <p>Install the app on the home screen (browser menu &rarr; “Add to Home Screen”) so it opens full-screen with one touch. Consider placing it alone on the first home-screen page. Then walk through the Help button together once — the app explains itself out loud (it also gives a spoken tour automatically on the very first tap).</p>
+    <p><strong>Strongly recommended — lock the phone into this app</strong> so a stray touch can never leave it:</p>
+    <ul style="margin: 8px 0 0 22px; line-height: 1.6;">
+      <li><strong>iPhone:</strong> Settings &rarr; Accessibility &rarr; Guided Access &rarr; on. Open Blind Reader, then triple-click the side button to lock the phone into it.</li>
+      <li><strong>Android:</strong> Settings &rarr; Security &rarr; App pinning &rarr; on. Open Blind Reader, open recent apps, tap the app's icon &rarr; Pin.</li>
+    </ul>
   </div>
 
   <script type="module" src="js/settings-page.js"></script>
