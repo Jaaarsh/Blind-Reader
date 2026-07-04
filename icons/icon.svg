@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#000000"/>
+  <!-- open book -->
+  <path d="M256 168 C216 140 152 136 104 148 L104 356 C152 344 216 348 256 376 C296 348 360 344 408 356 L408 148 C360 136 296 140 256 168 Z"
+        fill="none" stroke="#ffd400" stroke-width="26" stroke-linejoin="round"/>
+  <line x1="256" y1="170" x2="256" y2="374" stroke="#ffd400" stroke-width="20"/>
+  <!-- sound waves -->
+  <path d="M330 220 q34 36 0 72" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round"/>
+  <path d="M150 220 q-34 36 0 72" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round"/>
+</svg>

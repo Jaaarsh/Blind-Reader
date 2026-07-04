@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Blind Reader</title>
+  <meta name="description" content="A camera reader built for blind users. Tap anywhere to photograph a page, sign, or label and hear it read aloud.">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <main id="app">
+    <!-- Live camera preview sits behind everything; useful for sighted helpers
+         and users with residual vision. Decorative for everyone else. -->
+    <video id="preview" autoplay playsinline muted aria-hidden="true"></video>
+
+    <!-- The main control: one giant button covering most of the screen. -->
+    <button id="read-button" class="read-button" aria-label="Read. Point the camera at what you want read, then activate.">
+      <span id="big-state" class="big-state" aria-hidden="true">Tap to read</span>
+      <span id="caption" class="caption" aria-hidden="true"></span>
+    </button>
+
+    <!-- Spoken output is mirrored here for screen readers and sighted helpers. -->
+    <p id="status" class="visually-hidden" role="status" aria-live="polite"></p>
+
+    <nav class="bottom-bar" aria-label="Reader controls">
+      <button id="again-button" aria-label="Again. Hear the last reading again.">Again</button>
+      <button id="ask-button" aria-label="Ask. Ask a question about what was just read.">Ask</button>
+      <button id="help-button" aria-label="Help. Hear how to use this app.">Help</button>
+    </nav>
+
+    <!-- Small, visual-only link for the sighted helper doing one-time setup. -->
+    <a id="settings-link" href="settings.html" aria-label="Settings, for setup by a sighted helper">Setup</a>
+
+    <!-- Fallback capture path when live camera access is unavailable. -->
+    <input id="file-fallback" type="file" accept="image/*" capture="environment" class="visually-hidden" aria-hidden="true" tabindex="-1">
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>

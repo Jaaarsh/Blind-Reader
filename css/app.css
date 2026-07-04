@@ -1,0 +1,196 @@
+/* Blind Reader — blind-first styling.
+   Visuals exist mainly for sighted helpers and users with residual vision:
+   maximum contrast, enormous targets, zero reliance on sight to operate. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bar-height: 22vh;
+  --fg: #ffffff;
+  --bg: #000000;
+  --accent: #ffd400;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+#app { position: fixed; inset: 0; }
+
+#preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  background: #111;
+}
+
+.read-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(100% - var(--bar-height));
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4vh;
+  padding: 6vw;
+  -webkit-tap-highlight-color: rgba(255, 212, 0, 0.25);
+  touch-action: manipulation;
+}
+
+.read-button:active { background: rgba(255, 212, 0, 0.12); }
+
+.big-state {
+  font-size: clamp(2rem, 9vw, 4rem);
+  font-weight: 800;
+  text-shadow: 0 2px 12px #000, 0 0 4px #000;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.read-button.busy .big-state { color: var(--accent); }
+
+.caption {
+  font-size: clamp(1rem, 4.2vw, 1.5rem);
+  line-height: 1.4;
+  max-height: 34vh;
+  overflow: hidden;
+  text-shadow: 0 1px 8px #000, 0 0 3px #000;
+  text-align: center;
+  font-weight: 500;
+}
+
+.bottom-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--bar-height);
+  display: flex;
+  border-top: 4px solid var(--fg);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--bg);
+}
+
+.bottom-bar button {
+  flex: 1;
+  border: none;
+  border-left: 4px solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  font-weight: 800;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(255, 212, 0, 0.4);
+}
+
+.bottom-bar button:first-child { border-left: none; }
+.bottom-bar button:active { background: var(--accent); color: var(--bg); }
+
+.bottom-bar button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+#settings-link {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 8px);
+  right: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+  padding: 10px 14px;
+  text-decoration: underline;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 8px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Settings page ---------- */
+
+body.settings-page {
+  overflow: auto;
+  background: #000;
+  color: #fff;
+}
+
+.settings-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.settings-wrap h1 { font-size: 1.8rem; margin-bottom: 4px; }
+.settings-wrap h2 { font-size: 1.25rem; margin: 28px 0 8px; color: var(--accent); }
+.settings-wrap p.lede { color: #bbb; margin-bottom: 12px; }
+
+.settings-wrap label {
+  display: block;
+  font-weight: 700;
+  margin: 18px 0 6px;
+}
+
+.settings-wrap input[type="password"],
+.settings-wrap input[type="text"],
+.settings-wrap select {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.05rem;
+  border-radius: 10px;
+  border: 2px solid #666;
+  background: #111;
+  color: #fff;
+}
+
+.settings-wrap input[type="range"] { width: 100%; }
+
+.settings-wrap .hint { color: #999; font-size: 0.92rem; margin-top: 4px; }
+
+.settings-wrap button {
+  margin-top: 14px;
+  padding: 14px 22px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 2px solid var(--fg);
+  background: #000;
+  color: #fff;
+}
+
+.settings-wrap button.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+.settings-wrap button:active { opacity: 0.75; }
+
+.settings-wrap #test-result { margin-top: 10px; font-weight: 700; min-height: 1.4em; }
+.settings-wrap #test-result.ok { color: #6f6; }
+.settings-wrap #test-result.bad { color: #f66; }
+
+.settings-wrap a { color: var(--accent); }
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 18px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
