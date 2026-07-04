@@ -41,7 +41,7 @@ const HELP_TEXT =
   'Tap again while it is talking to make it stop. ' +
   'Along the bottom edge of the screen there are three wide buttons, side by side. ' +
   'The left button is Again. It continues from where the voice stopped, or repeats the reading. ' +
-  'The middle button is Ask. Press it any time and ask a question out loud about whatever the camera is pointed at, for example, what page is this book open to, or what is the dosage. ' +
+  'The middle button is Ask. Press it any time and ask a question out loud about whatever the camera is pointed at, for example, what page is this book open to, or what is the dosage. You can also ask about things that are not on the page, and I will answer from general knowledge and say so. ' +
   'The right button is this help. ' +
   'To make the voice talk faster, slide one finger up the screen. To slow it down, slide down. ' +
   'When a picture does not come out well, I will tell you how to move the phone. Take your time, and tap to try again.';
