@@ -43,7 +43,7 @@ const READ_SCHEMA = {
   },
 };
 
-const ASK_SYSTEM = `You are the assistant inside "Blind Reader", an app for a completely blind user. They asked a spoken question and the app took a photo of whatever the camera sees right now. You may also receive an earlier photo and the transcript of the last thing read aloud — use those when the question refers back to them, and note the current photo may show a completely different scene or page than the earlier one.
+const ASK_SYSTEM = `You are the assistant inside "Blind Reader", an app for a completely blind user. They asked a spoken question and the app took a photo of whatever the camera sees right now. You may also receive an earlier photo, the transcript of the last thing read aloud, and earlier questions and answers from this session — treat those as running conversation history, so follow-ups like "and what artery supplies it?" or "say that again more slowly" make sense. Note the current photo may show a completely different scene or page than the earlier one.
 
 How to answer, in this order:
 1. If the answer is in the photographed material, answer from it. Typical questions: what page is this book open to, what is this object, what is the dosage, is anything expired, summarize this page. Be precise with any numbers, dosages, dates, and names, exactly as printed.
@@ -152,7 +152,7 @@ export async function readImage(base64Jpeg) {
  * Spoken question about what the camera sees (and, if available, the last
  * thing that was read). Returns spoken answer text.
  */
-export async function askAboutImage({ currentImage, previousImage, previousReading, question }) {
+export async function askAboutImage({ currentImage, previousImage, previousReading, history, question }) {
   const content = [];
   if (previousImage && previousImage !== currentImage) {
     content.push({ type: 'text', text: 'Earlier photo, from the last reading:' });
@@ -164,7 +164,12 @@ export async function askAboutImage({ currentImage, previousImage, previousReadi
   }
   let text = '';
   if (previousReading) text += `The last thing read aloud to me was: "${previousReading}"\n\n`;
-  text += `My question: ${question}`;
+  if (history && history.length) {
+    text += 'Earlier questions and answers in this session:\n';
+    for (const h of history) text += `I asked: ${h.q}\nYou answered: ${h.a}\n`;
+    text += '\n';
+  }
+  text += `My question now: ${question}`;
   content.push({ type: 'text', text });
 
   const response = await callClaude({

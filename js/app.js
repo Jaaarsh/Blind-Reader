@@ -34,6 +34,7 @@ let lastReading = '';    // last spoken content
 let firstInteraction = true;
 let pageHintsGiven = 0;  // "turn the page" nudges per session
 let resumeHintsGiven = 0; // "press Again to continue" nudges per session
+let askHistory = [];     // recent Ask exchanges, so follow-up questions work
 
 const HELP_TEXT =
   'Here is how Blind Reader works. Hold the phone about a foot above a page, sign, or label, ' +
@@ -250,9 +251,12 @@ async function askQuestion() {
       currentImage: currentImage || lastImage,
       previousImage: lastImage,
       previousReading: lastReading,
+      history: askHistory,
       question,
     });
     if (currentImage) lastImage = currentImage;
+    askHistory.push({ q: question, a: answer.slice(0, 800) });
+    if (askHistory.length > 8) askHistory.shift();
     sounds.stopWorkingTicks();
     state = 'idle';
     sounds.successDing();

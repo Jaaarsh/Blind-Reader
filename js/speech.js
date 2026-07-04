@@ -150,23 +150,44 @@ export function recognitionSupported() {
 /**
  * Listen for one spoken phrase. Resolves with the transcript string,
  * or rejects on error / silence.
+ *
+ * The browser gives up after only a few seconds of silence, which is too
+ * fast for an elderly speaker gathering their thoughts — so silence is
+ * retried quietly a few times before we report failure, roughly tripling
+ * the time available to start talking.
  */
-export function listenOnce(lang = 'en') {
+export function listenOnce(lang = 'en', { retries = 2 } = {}) {
   return new Promise((resolve, reject) => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { reject(new Error('unsupported')); return; }
-    const rec = new SR();
-    rec.lang = lang;
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    let settled = false;
+    let attempts = 0;
 
-    rec.onresult = e => {
-      settled = true;
-      resolve(e.results[0][0].transcript);
+    const tryOnce = () => {
+      const rec = new SR();
+      rec.lang = lang;
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      let settled = false;
+
+      const retryOrFail = reason => {
+        if (settled) return;
+        settled = true;
+        if ((reason === 'no-speech' || reason === 'aborted') && attempts < retries) {
+          attempts += 1;
+          tryOnce(); // keep listening quietly — they may just need a moment
+        } else {
+          reject(new Error(reason));
+        }
+      };
+
+      rec.onresult = e => {
+        settled = true;
+        resolve(e.results[0][0].transcript);
+      };
+      rec.onerror = e => retryOrFail(e.error || 'recognition-error');
+      rec.onend = () => retryOrFail('no-speech');
+      try { rec.start(); } catch { retryOrFail('recognition-error'); }
     };
-    rec.onerror = e => { if (!settled) { settled = true; reject(new Error(e.error || 'recognition-error')); } };
-    rec.onend = () => { if (!settled) { settled = true; reject(new Error('no-speech')); } };
-    try { rec.start(); } catch (err) { if (!settled) { settled = true; reject(err); } }
+    tryOnce();
   });
 }
