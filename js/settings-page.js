@@ -1,13 +1,30 @@
 // Setup page logic — used by a sighted helper, so it is a normal visual form.
 
-import { loadSettings, saveSettings } from './store.js';
+import { loadSettings, saveSettings, PROVIDERS } from './store.js';
 
 const $ = id => document.getElementById(id);
 const settings = loadSettings();
 
+$('provider').value = PROVIDERS[settings.provider] ? settings.provider : 'anthropic';
 $('api-key').value = settings.apiKey;
 $('server-code').value = settings.serverCode || '';
 $('mode').value = settings.mode;
+
+// Per-service labels: key instructions, model names, and whether the
+// key-holding server option applies (Anthropic only).
+function refreshProviderUI() {
+  const p = PROVIDERS[$('provider').value] || PROVIDERS.anthropic;
+  $('key-hint').textContent = p.keyHint + ' The key is stored only on this device.';
+  const modelSelect = $('model');
+  modelSelect.options[0].textContent = p.models.best.label;
+  modelSelect.options[1].textContent = p.models.budget.label;
+  $('model-hint').textContent = $('provider').value === 'google'
+    ? 'On the free tier, Flash allows far more readings per day than Pro.'
+    : 'Rough cost per photo: a few cents on Best quality, well under a cent on Lower cost.';
+  $('server-options').style.display = $('provider').value === 'anthropic' ? '' : 'none';
+}
+$('provider').addEventListener('change', refreshProviderUI);
+refreshProviderUI();
 
 // If a blind user lands here by accident, orient them out loud.
 // (May be muted by autoplay rules on some phones; the giant back link and the
@@ -83,6 +100,7 @@ $('voice-test').addEventListener('click', () => {
 function collect() {
   return {
     ...settings,
+    provider: $('provider').value,
     apiKey: $('api-key').value.trim(),
     serverCode: $('server-code').value.trim(),
     mode: $('mode').value,
@@ -129,45 +147,69 @@ $('test-button').addEventListener('click', async () => {
   saveSettings(collect()); // test what was typed, not what was saved earlier
 
   const s = collect();
-  const useDirect = s.mode === 'direct' || (s.mode === 'auto' && s.apiKey);
-  const body = {
-    model: 'claude-haiku-4-5', // cheapest possible ping
-    max_tokens: 20,
-    messages: [{ role: 'user', content: 'Reply with the single word: ready' }],
-  };
+  const budgetModel = PROVIDERS[s.provider].models.budget.id; // cheapest ping
+  const ping = 'Reply with the single word: ready';
+  let res;
+  let where = 'the service';
 
   try {
-    let res;
-    if (useDirect) {
-      res = await fetch('https://api.anthropic.com/v1/messages', {
+    if (s.provider === 'google') {
+      where = 'Google Gemini';
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${budgetModel}:generateContent`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': s.apiKey },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: ping }] }],
+            generationConfig: { maxOutputTokens: 20 },
+          }),
+        }
+      );
+    } else if (s.provider === 'openai') {
+      where = 'OpenAI';
+      res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': s.apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify(body),
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${s.apiKey}` },
+        body: JSON.stringify({
+          model: budgetModel,
+          max_completion_tokens: 20,
+          messages: [{ role: 'user', content: ping }],
+        }),
       });
     } else {
-      const headers = { 'content-type': 'application/json' };
-      if (s.serverCode) headers['x-reader-code'] = s.serverCode;
-      res = await fetch('api/read', { method: 'POST', headers, body: JSON.stringify(body) });
+      where = 'Claude';
+      const useDirect = s.mode === 'direct' || (s.mode === 'auto' && s.apiKey);
+      const body = { model: budgetModel, max_tokens: 20, messages: [{ role: 'user', content: ping }] };
+      if (useDirect) {
+        res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'x-api-key': s.apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify(body),
+        });
+      } else {
+        where = "this app's server";
+        const headers = { 'content-type': 'application/json' };
+        if (s.serverCode) headers['x-reader-code'] = s.serverCode;
+        res = await fetch('api/read', { method: 'POST', headers, body: JSON.stringify(body) });
+      }
     }
+
     if (res.ok) {
       out.className = 'ok';
-      out.textContent = useDirect
-        ? 'Success — the key works. Claude answered.'
-        : 'Success — the server answered. Claude is connected.';
+      out.textContent = `Success — ${where} answered. You're connected.`;
     } else {
       const detail = await res.json().catch(() => null);
       out.className = 'bad';
-      out.textContent = `Failed (${res.status}): ${detail?.error?.message || 'check the key / server setup.'}`;
+      out.textContent = `Failed (${res.status}): ${detail?.error?.message || detail?.error?.status || 'check the key.'}`;
     }
   } catch {
     out.className = 'bad';
-    out.textContent = useDirect
-      ? 'Network error — could not reach the Claude API from this device.'
-      : 'Network error — is the Blind Reader server running? (See README.)';
+    out.textContent = `Network error — could not reach ${where} from this device.`;
   }
 });

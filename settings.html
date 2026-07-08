@@ -14,23 +14,33 @@
     <p class="lede">This page is meant for a sighted helper doing one-time setup. After this, the reader itself needs no sight to use.</p>
 
     <h2>1. Connect the reading service</h2>
-    <p>Blind Reader uses Claude (an AI by Anthropic) to understand what the camera sees. Either paste an API key here, or run the included server which holds the key for you — see the README.</p>
+    <p>Blind Reader uses an AI vision service to understand what the camera sees. <strong>Anthropic Claude</strong> gives the best reading quality (recommended for medical and dense material). <strong>Google Gemini</strong> has a genuinely free tier — good when cost matters most.</p>
 
     <p class="hint"><strong>Note:</strong> settings (including the key) are saved per browser, per device. A different browser or phone starts blank — set it up there too, easiest via the setup link at the bottom of this page. Also: the Ask (voice question) feature needs Chrome, Edge, or Safari — Firefox does not support voice input on any website.</p>
 
-    <label for="api-key">Anthropic API key</label>
-    <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-...">
-    <p class="hint">Create one at <a href="https://platform.claude.com" target="_blank" rel="noopener">platform.claude.com</a> (API keys section). The key is stored only on this device. Leave empty if you run the server with the key instead.</p>
-
-    <label for="server-code">Server passcode (only for Option B servers that set one)</label>
-    <input id="server-code" type="text" autocomplete="off" placeholder="leave empty unless your server uses READER_PASSCODE">
-
-    <label for="mode">Connection mode</label>
-    <select id="mode">
-      <option value="auto">Automatic (use the key if present, otherwise the server)</option>
-      <option value="direct">Always call Claude directly from this device</option>
-      <option value="server">Always go through this app's server</option>
+    <label for="provider">AI service</label>
+    <select id="provider">
+      <option value="anthropic">Anthropic Claude (best quality, paid — cents per page)</option>
+      <option value="google">Google Gemini (free tier available)</option>
+      <option value="openai">OpenAI (paid)</option>
     </select>
+
+    <label for="api-key">API key</label>
+    <input id="api-key" type="password" autocomplete="off" placeholder="paste the key here">
+    <p class="hint" id="key-hint"></p>
+
+    <div id="server-options">
+      <label for="server-code">Server passcode (only for Option B servers that set one)</label>
+      <input id="server-code" type="text" autocomplete="off" placeholder="leave empty unless your server uses READER_PASSCODE">
+
+      <label for="mode">Connection mode</label>
+      <select id="mode">
+        <option value="auto">Automatic (use the key if present, otherwise the server)</option>
+        <option value="direct">Always call Claude directly from this device</option>
+        <option value="server">Always go through this app's server</option>
+      </select>
+      <p class="hint">The optional key-holding server (README Option B) works with Anthropic only.</p>
+    </div>
 
     <button id="test-button" class="primary" type="button">Test the connection</button>
     <p id="test-result" role="status"></p>
@@ -38,10 +48,10 @@
     <h2>2. Reading quality</h2>
     <label for="model">Model</label>
     <select id="model">
-      <option value="best">Best quality (Claude Opus 4.8) — recommended for medical and dense material</option>
-      <option value="budget">Lower cost (Claude Haiku 4.5) — fine for signs and everyday text</option>
+      <option value="best">Best quality</option>
+      <option value="budget">Lower cost / free</option>
     </select>
-    <p class="hint">Rough cost per photo: a few cents on Best quality, well under a cent on Lower cost.</p>
+    <p class="hint" id="model-hint"></p>
 
     <h2>3. Camera (mainly for PCs)</h2>
     <p class="hint">On a phone the rear camera is picked automatically — skip this. On a PC with more than one camera (laptop camera plus a document webcam), choose the one pointed at the reading material.</p>

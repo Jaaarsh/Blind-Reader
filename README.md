@@ -44,10 +44,17 @@ It also works fine **with** VoiceOver/TalkBack running (all controls are real, l
 
 ## Setup (10 minutes, done once by a sighted helper)
 
-### Step 1 — Get a Claude API key
+### Step 1 — Get an API key (paid best-quality, or free)
 
-1. Go to [platform.claude.com](https://platform.claude.com), create an account, add a small amount of credit ($5 lasts a long time — hundreds of pages).
-2. Create an API key (starts with `sk-ant-`).
+Blind Reader works with three AI services — pick one:
+
+| Service | Cost | Notes |
+|---|---|---|
+| **Anthropic Claude** (recommended) | ~cents per page | Best reading quality, especially medical/dense material. [platform.claude.com](https://platform.claude.com) → add ~$5 credit → create a key (`sk-ant-…`). |
+| **Google Gemini** | **Free tier** | Genuinely free, no credit card: [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → "Get API key". Daily limit on the free tier (the Flash model has the roomiest quota). Quality is good, a notch below Claude on complex pages. |
+| **OpenAI** | ~cents per page | [platform.openai.com](https://platform.openai.com) → create a key. |
+
+Choose the service and paste its key on the Setup page. You can switch services at any time — even keep a Claude key on his phone and a free Gemini key as a spare browser setup.
 
 ### Step 2 — Pick ONE of these two ways to run the app
 
@@ -102,7 +109,8 @@ The first tap plays a spoken tour automatically. Practice one page, one "Ask" qu
 
 | Setting | Notes |
 |---|---|
-| Model | **Best quality** (Claude Opus 4.8) — recommended for medical/dense material. **Lower cost** (Claude Haiku 4.5) for everyday reading. |
+| AI service | Anthropic Claude (best quality, paid), Google Gemini (free tier), or OpenAI (paid). |
+| Model | **Best quality** — recommended for medical/dense material. **Lower cost / free** for everyday reading (on Gemini's free tier, Flash allows far more readings per day). |
 | Speaking speed | Experienced blind users often like 1.5×–2×. |
 | Voice | Any voice installed on the phone. |
 | Language | Used for the spoken **Ask** questions. |

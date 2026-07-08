@@ -1,12 +1,12 @@
-// The understanding engine: Claude vision reads and explains what the camera
-// sees. Two transports:
-//   direct — the phone calls the Anthropic API itself (key stored on device)
-//   server — the phone calls this app's own /api/read proxy (key stays on the
-//            server; nothing secret on the phone)
+// The understanding engine: an AI vision model reads and explains what the
+// camera sees. Three interchangeable services (chosen in Setup):
+//   anthropic — Claude (best reading quality; default)
+//   google    — Gemini (has a genuinely free tier)
+//   openai    — GPT (offered for choice/redundancy)
+// Anthropic additionally supports a "server" transport where this app's own
+// /api/read proxy holds the key so nothing secret lives on the phone.
 
-import { loadSettings, modelId } from './store.js';
-
-const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+import { loadSettings, modelId, providerOf } from './store.js';
 
 const READ_SYSTEM = `You are the vision engine inside "Blind Reader", an app whose user is completely blind. They pointed their phone camera at something and want to hear what it says. Your entire output is spoken aloud by text-to-speech, so write plain flowing sentences: no markdown, no bullet points, no headers, no emoji, no visual formatting of any kind.
 
@@ -26,6 +26,12 @@ If the photo cannot be read (too blurry, too dark, too far, mostly cut off, lens
 If the photo is readable but part of the material is clearly cut off, read what is visible and put a short aiming tip in "guidance" as well.
 
 Always fill "kind" with the best matching category.`;
+
+// Providers without Anthropic-style structured outputs get the JSON contract
+// spelled out in the prompt instead, plus a tolerant parser below.
+const JSON_INSTRUCTION = `
+
+Respond with ONLY a single JSON object — no markdown fences, no text before or after it — with exactly these keys: "readable" (true or false), "kind" (one of "document", "book", "sign", "poster", "label", "handwriting", "screen", "scene", "other"), "content" (string, the full spoken reading, empty when readable is false), "guidance" (string, short spoken aiming help, empty when nothing needs adjusting).`;
 
 const READ_SCHEMA = {
   type: 'object',
@@ -60,92 +66,162 @@ class ApiError extends Error {
   }
 }
 
-function usingDirect(settings) {
-  return settings.mode === 'direct' || (settings.mode === 'auto' && settings.apiKey);
-}
-
 // Never leave a blind user waiting forever: hard timeout on every request.
 const REQUEST_TIMEOUT_MS = 90000;
 
-async function callClaude(body) {
-  const settings = loadSettings();
-  const useDirect = usingDirect(settings);
+function usingDirect(settings) {
+  if (providerOf(settings) !== 'anthropic') return true; // proxy is Anthropic-only
+  return settings.mode === 'direct' || (settings.mode === 'auto' && settings.apiKey);
+}
 
+async function timedFetch(url, options) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
-
-  let res;
   try {
-    if (useDirect) {
-      res = await fetch(ANTHROPIC_URL, {
-        method: 'POST',
-        signal: ctrl.signal,
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': settings.apiKey,
-          'anthropic-version': '2023-06-01',
-          // Required opt-in for calling the Anthropic API from a browser.
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify(body),
-      });
-    } else {
-      const headers = { 'content-type': 'application/json' };
-      if (settings.serverCode) headers['x-reader-code'] = settings.serverCode;
-      res = await fetch('api/read', {
-        method: 'POST',
-        signal: ctrl.signal,
-        headers,
-        body: JSON.stringify(body),
-      });
-    }
+    return await fetch(url, { ...options, signal: ctrl.signal });
   } catch (err) {
     throw new ApiError(err && err.name === 'AbortError' ? -1 : 0, 'network');
   } finally {
     clearTimeout(timer);
   }
+}
 
-  if (!res.ok) {
-    let detail = '';
-    try { detail = (await res.json())?.error?.message || ''; } catch {}
-    throw new ApiError(res.status, detail);
+async function failFrom(res) {
+  let detail = '';
+  try {
+    const body = await res.json();
+    detail = body?.error?.message || body?.error?.status || '';
+  } catch {}
+  throw new ApiError(res.status, detail);
+}
+
+/**
+ * One request to the configured AI service.
+ * parts: ordered list of { text } and { image } (base64 JPEG) blocks.
+ * json:  ask for the READ_SCHEMA JSON shape.
+ * Returns the response text.
+ */
+async function callProvider({ system, parts, json = false }) {
+  const settings = loadSettings();
+  const provider = providerOf(settings);
+  const model = modelId(settings);
+
+  if (provider === 'google') {
+    const res = await timedFetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': settings.apiKey },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: json ? system + JSON_INSTRUCTION : system }] },
+          contents: [{
+            role: 'user',
+            parts: parts.map(p => p.image
+              ? { inline_data: { mime_type: 'image/jpeg', data: p.image } }
+              : { text: p.text }),
+          }],
+          generationConfig: { maxOutputTokens: 16000 },
+        }),
+      }
+    );
+    if (!res.ok) await failFrom(res);
+    const data = await res.json();
+    return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
   }
-  return res.json();
-}
 
-function imageBlock(base64Jpeg) {
-  return {
-    type: 'image',
-    source: { type: 'base64', media_type: 'image/jpeg', data: base64Jpeg },
+  if (provider === 'openai') {
+    const res = await timedFetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${settings.apiKey}` },
+      body: JSON.stringify({
+        model,
+        max_completion_tokens: 16000,
+        messages: [
+          { role: 'system', content: json ? system + JSON_INSTRUCTION : system },
+          {
+            role: 'user',
+            content: parts.map(p => p.image
+              ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.image}` } }
+              : { type: 'text', text: p.text }),
+          },
+        ],
+      }),
+    });
+    if (!res.ok) await failFrom(res);
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
+  // Anthropic (default) — direct from the browser, or via this app's proxy.
+  const body = {
+    model,
+    max_tokens: 16000,
+    system,
+    messages: [{
+      role: 'user',
+      content: parts.map(p => p.image
+        ? { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: p.image } }
+        : { type: 'text', text: p.text }),
+    }],
   };
+  if (json) body.output_config = { format: { type: 'json_schema', schema: READ_SCHEMA } };
+
+  let res;
+  if (usingDirect(settings)) {
+    res = await timedFetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': settings.apiKey,
+        'anthropic-version': '2023-06-01',
+        // Required opt-in for calling the Anthropic API from a browser.
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify(body),
+    });
+  } else {
+    const headers = { 'content-type': 'application/json' };
+    if (settings.serverCode) headers['x-reader-code'] = settings.serverCode;
+    res = await timedFetch('api/read', { method: 'POST', headers, body: JSON.stringify(body) });
+  }
+  if (!res.ok) await failFrom(res);
+  const data = await res.json();
+  const block = (data.content || []).find(b => b.type === 'text');
+  return block ? block.text : '';
 }
 
-function firstText(response) {
-  const block = (response.content || []).find(b => b.type === 'text');
-  return block ? block.text : '';
+/** Tolerant JSON extraction — survives markdown fences and stray prose. */
+function extractJson(text) {
+  try { return JSON.parse(text); } catch {}
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start >= 0 && end > start) {
+    try { return JSON.parse(text.slice(start, end + 1)); } catch {}
+  }
+  return null;
 }
 
 /** Photograph → { readable, kind, content, guidance } */
 export async function readImage(base64Jpeg) {
-  const response = await callClaude({
-    model: modelId(loadSettings()),
-    max_tokens: 16000,
+  const text = await callProvider({
     system: READ_SYSTEM,
-    output_config: { format: { type: 'json_schema', schema: READ_SCHEMA } },
-    messages: [{
-      role: 'user',
-      content: [
-        imageBlock(base64Jpeg),
-        { type: 'text', text: 'Here is what my camera sees right now. Please read it to me.' },
-      ],
-    }],
+    json: true,
+    parts: [
+      { image: base64Jpeg },
+      { text: 'Here is what my camera sees right now. Please read it to me.' },
+    ],
   });
-  try {
-    return JSON.parse(firstText(response));
-  } catch {
-    // Extremely rare with structured outputs, but never leave the user hanging.
-    return { readable: true, kind: 'other', content: firstText(response), guidance: '' };
+  const parsed = extractJson(text);
+  if (parsed && typeof parsed === 'object' && typeof parsed.content === 'string') {
+    return {
+      readable: Boolean(parsed.readable),
+      kind: parsed.kind || 'other',
+      content: parsed.content,
+      guidance: parsed.guidance || '',
+    };
   }
+  // Never leave the user hanging — speak whatever came back.
+  return { readable: true, kind: 'other', content: text, guidance: '' };
 }
 
 /**
@@ -153,14 +229,14 @@ export async function readImage(base64Jpeg) {
  * thing that was read). Returns spoken answer text.
  */
 export async function askAboutImage({ currentImage, previousImage, previousReading, history, question }) {
-  const content = [];
+  const parts = [];
   if (previousImage && previousImage !== currentImage) {
-    content.push({ type: 'text', text: 'Earlier photo, from the last reading:' });
-    content.push(imageBlock(previousImage));
+    parts.push({ text: 'Earlier photo, from the last reading:' });
+    parts.push({ image: previousImage });
   }
   if (currentImage) {
-    content.push({ type: 'text', text: 'Current photo, what the camera sees right now:' });
-    content.push(imageBlock(currentImage));
+    parts.push({ text: 'Current photo, what the camera sees right now:' });
+    parts.push({ image: currentImage });
   }
   let text = '';
   if (previousReading) text += `The last thing read aloud to me was: "${previousReading}"\n\n`;
@@ -170,21 +246,16 @@ export async function askAboutImage({ currentImage, previousImage, previousReadi
     text += '\n';
   }
   text += `My question now: ${question}`;
-  content.push({ type: 'text', text });
+  parts.push({ text });
 
-  const response = await callClaude({
-    model: modelId(loadSettings()),
-    max_tokens: 16000,
-    system: ASK_SYSTEM,
-    messages: [{ role: 'user', content }],
-  });
-  return firstText(response);
+  return callProvider({ system: ASK_SYSTEM, parts });
 }
 
 /** Turn an API failure into a sentence a blind user can act on. */
 export function explainError(err) {
   const status = err && err.status;
-  const direct = usingDirect(loadSettings());
+  const settings = loadSettings();
+  const direct = usingDirect(settings);
   if (status === -1) return 'That took too long. Please tap to try again.';
   if (status === 0) return 'I could not reach the internet. Please check the connection, then tap to try again.';
   if (status === 401 || status === 403) {
@@ -192,8 +263,13 @@ export function explainError(err) {
       ? 'The access key was rejected. Please ask your helper to open Setup and check the key.'
       : 'The reading server would not let this phone in. Please ask your helper to check the passcode in Setup.';
   }
-  if (status === 429) return 'The reading service says we are going too fast. Please wait a minute, then tap to try again.';
+  if (status === 429) {
+    return providerOf(settings) === 'google'
+      ? 'The free reading allowance is used up for now. Please wait a while and try again, or ask your helper about switching services in Setup.'
+      : 'The reading service says we are going too fast. Please wait a minute, then tap to try again.';
+  }
   if (status === 404 && !direct) return 'This app has not been set up yet. Please ask a sighted helper to open the Setup page.';
+  if (status === 404) return 'The reading service did not recognize the chosen model. Please ask your helper to open Setup and try the other quality setting.';
   if (status >= 500) return 'The reading service had a temporary problem. Please tap to try again.';
   return 'Something went wrong while reading. Please tap to try again.';
 }
