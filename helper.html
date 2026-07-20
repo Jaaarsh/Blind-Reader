@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blind Reader — Helper's Guide</title>
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="helper-page">
+  <div class="helper-wrap">
+    <a class="helper-back" href="index.html">&larr; Back to the reader</a>
+
+    <h1>Helper's Guide</h1>
+    <p class="lede-light">This page is for the person helping — written in plain words, in large print. You can <button id="print-button" class="linklike" type="button">print this page</button> and keep it next to the reading desk.</p>
+
+    <div class="checkup no-print">
+      <h2>Is everything working?</h2>
+      <p>Press this one button. It checks the whole reader and tells you in plain words if anything needs attention.</p>
+      <button id="check-button" type="button">Check that everything works</button>
+      <div id="check-results" aria-live="polite"></div>
+    </div>
+
+    <h2>What this app does</h2>
+    <p>Blind Reader uses the camera to look at a page, a letter, a pill bottle — anything — and reads it out loud in a natural voice. It is made so a blind person can use it alone. Your job as helper is only for the rare moments something goes wrong.</p>
+
+    <h2>How he uses it on the phone</h2>
+    <ul class="bigsteps">
+      <li><strong>Tap anywhere on the top of the screen</strong> — takes a picture and reads it aloud.</li>
+      <li><strong>Tap again while it is talking</strong> — the voice stops.</li>
+      <li>Three wide buttons along the bottom, left to right:
+        <ul>
+          <li><strong>Again</strong> (left) — continues where the voice stopped, or repeats.</li>
+          <li><strong>Ask</strong> (middle) — he speaks a question and hears the answer.</li>
+          <li><strong>Help</strong> (right) — the app explains itself out loud.</li>
+        </ul>
+      </li>
+      <li><strong>Slide a finger up or down</strong> the screen — voice talks faster or slower.</li>
+      <li><strong>Hold a finger down anywhere</strong> — spoken help.</li>
+    </ul>
+
+    <h2>How he uses it on the computer</h2>
+    <table class="keytable">
+      <tr><th>Key</th><th>What it does</th></tr>
+      <tr><td><strong>Space bar</strong></td><td>Take a picture and read it — or stop the voice</td></tr>
+      <tr><td><strong>Enter</strong></td><td>Continue where it stopped, or repeat</td></tr>
+      <tr><td><strong>A</strong></td><td>Ask a spoken question</td></tr>
+      <tr><td><strong>H</strong></td><td>Help, spoken out loud</td></tr>
+      <tr><td><strong>Arrow up / down</strong></td><td>Voice faster / slower</td></tr>
+    </table>
+    <p>If he presses any other key, the app tells him the controls out loud. The book lies flat on the desk with the camera above it: <em>turn page, press space, listen.</em></p>
+
+    <div class="golden">
+      <h2>The golden rule</h2>
+      <p><strong>When in doubt: close the app completely and open it again.</strong> If that doesn't help, turn the phone (or computer) off and on. This fixes almost everything.</p>
+      <p>To close an app completely on an <strong>iPhone</strong>: swipe up from the very bottom of the screen and hold your finger for a second — you'll see the open apps — then push the reader's picture up and off the screen. On <strong>Android</strong>: tap the square button (or swipe up and hold), then swipe the reader away. Then open it again from its icon.</p>
+    </div>
+
+    <h2>When something goes wrong</h2>
+    <table class="fixtable">
+      <tr><th>What you see or hear</th><th>What to do</th></tr>
+      <tr>
+        <td>The voice says <em>"the access key was rejected"</em></td>
+        <td>Tap <strong>Setup</strong> twice (top right corner of the reader). Check the API key is filled in, press <strong>Test the connection</strong>, then <strong>Save</strong>.</td>
+      </tr>
+      <tr>
+        <td>The voice says <em>"could not reach the internet"</em></td>
+        <td>The Wi-Fi or phone signal is off or down. Check Wi-Fi is on. Try opening any website.</td>
+      </tr>
+      <tr>
+        <td>No sound at all — the app seems to work but stays silent</td>
+        <td>Turn the volume up with the side buttons. <strong>On iPhone, also check the small switch on the left side of the phone</strong> — if it shows orange, the phone is on silent and the voice may be muted. Flip it back.</td>
+      </tr>
+      <tr>
+        <td>The voice says <em>"the free reading allowance is used up"</em></td>
+        <td>The free service has a daily limit. It resets by itself — try again in a few hours or tomorrow. (Or the Setup page can switch to a paid service.)</td>
+      </tr>
+      <tr>
+        <td>The picture is black or it says the camera won't open</td>
+        <td>Make sure nothing covers the camera on the back. If it asked for camera permission and someone pressed "Don't allow": open the phone's Settings, find the browser or Blind Reader, and allow the Camera.</td>
+      </tr>
+      <tr>
+        <td>It talks much too fast or too slow</td>
+        <td>Slide one finger up (faster) or down (slower) on the reading screen. Each slide changes it one step and the app says so.</td>
+      </tr>
+      <tr>
+        <td>He pressed something and now the screen looks different / he's "somewhere else"</td>
+        <td>The golden rule: close the app completely and open it again. It always comes back to the same simple reading screen.</td>
+      </tr>
+      <tr>
+        <td>It keeps misunderstanding his spoken questions</td>
+        <td>Quiet the room (TV off), hold the phone a little closer when he speaks, and have him press <strong>Ask</strong>, wait for "What is your question?", then speak.</td>
+      </tr>
+      <tr>
+        <td>The reading itself seems wrong or garbled</td>
+        <td>Usually the photo was poor. More light, hold the phone about a foot above the page, hold still for a second after tapping. The app itself will also coach him out loud.</td>
+      </tr>
+    </table>
+
+    <h2>Setting up a new phone or computer</h2>
+    <p>The reader's settings live inside each device, so a new phone or computer starts empty. The easy way: on a device that already works, open <strong>Setup</strong> (tap the word Setup twice, top right), scroll to <strong>"Set up another phone without typing"</strong>, press <strong>Create setup link</strong>, and send that link to the new device by text message or email. Open the link there — done. It will say "Setup complete."</p>
+    <p>On a computer, use Chrome or Edge (voice questions don't work in Firefox), and pick the right camera in Setup if the computer has more than one.</p>
+
+    <h2>Nothing here can be broken</h2>
+    <p>Don't be afraid to press things. The reader has no delete, no buy, no send — every button only ever talks. The worst that can happen is it reads something twice.</p>
+  </div>
+
+  <script type="module" src="js/helper-page.js"></script>
+</body>
+</html>

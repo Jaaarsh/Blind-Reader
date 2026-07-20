@@ -1,6 +1,7 @@
 // Setup page logic — used by a sighted helper, so it is a normal visual form.
 
 import { loadSettings, saveSettings, PROVIDERS } from './store.js';
+import { pingService } from './ping.js';
 
 const $ = id => document.getElementById(id);
 const settings = loadSettings();
@@ -146,70 +147,15 @@ $('test-button').addEventListener('click', async () => {
   out.textContent = 'Testing…';
   saveSettings(collect()); // test what was typed, not what was saved earlier
 
-  const s = collect();
-  const budgetModel = PROVIDERS[s.provider].models.budget.id; // cheapest ping
-  const ping = 'Reply with the single word: ready';
-  let res;
-  let where = 'the service';
-
-  try {
-    if (s.provider === 'google') {
-      where = 'Google Gemini';
-      res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${budgetModel}:generateContent`,
-        {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-goog-api-key': s.apiKey },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: ping }] }],
-            generationConfig: { maxOutputTokens: 20 },
-          }),
-        }
-      );
-    } else if (s.provider === 'openai') {
-      where = 'OpenAI';
-      res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${s.apiKey}` },
-        body: JSON.stringify({
-          model: budgetModel,
-          max_completion_tokens: 20,
-          messages: [{ role: 'user', content: ping }],
-        }),
-      });
-    } else {
-      where = 'Claude';
-      const useDirect = s.mode === 'direct' || (s.mode === 'auto' && s.apiKey);
-      const body = { model: budgetModel, max_tokens: 20, messages: [{ role: 'user', content: ping }] };
-      if (useDirect) {
-        res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'x-api-key': s.apiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
-          },
-          body: JSON.stringify(body),
-        });
-      } else {
-        where = "this app's server";
-        const headers = { 'content-type': 'application/json' };
-        if (s.serverCode) headers['x-reader-code'] = s.serverCode;
-        res = await fetch('api/read', { method: 'POST', headers, body: JSON.stringify(body) });
-      }
-    }
-
-    if (res.ok) {
-      out.className = 'ok';
-      out.textContent = `Success — ${where} answered. You're connected.`;
-    } else {
-      const detail = await res.json().catch(() => null);
-      out.className = 'bad';
-      out.textContent = `Failed (${res.status}): ${detail?.error?.message || detail?.error?.status || 'check the key.'}`;
-    }
-  } catch {
+  const result = await pingService(collect());
+  if (result.ok) {
+    out.className = 'ok';
+    out.textContent = `Success — ${result.where} answered. You're connected.`;
+  } else if (result.status === 0) {
     out.className = 'bad';
-    out.textContent = `Network error — could not reach ${where} from this device.`;
+    out.textContent = `Network error — could not reach ${result.where} from this device.`;
+  } else {
+    out.className = 'bad';
+    out.textContent = `Failed (${result.status}): ${result.message || 'check the key.'}`;
   }
 });

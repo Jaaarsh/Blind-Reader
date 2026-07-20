@@ -138,6 +138,8 @@ A useful desk setup: book flat on the desk, webcam above it, space bar within re
 
 ## Troubleshooting
 
+**Start with the built-in [Helper's Guide](helper.html)** (`…/helper.html` on your deployed site) — plain words, large print, printable, written for a non-technical helper. Its one-button check-up tests the key, internet, voice, and camera and says what's wrong in plain language.
+
 - **"This app has not been set up yet" / reading errors in a new browser or phone:** settings (including the key) are stored per browser, per device. Open the setup link in that browser once, or fill in its Setup page. The setup link is reusable — keep it somewhere private.
 - **Ask says voice questions aren't supported:** the browser lacks voice input. Firefox doesn't support it on any website; use Chrome, Edge, or Safari. Reading itself works everywhere.
 - **Camera won't open:** the site must be served over HTTPS (GitHub Pages is), and the browser needs camera permission — check the padlock icon next to the address.
