@@ -6,6 +6,8 @@
 
 📱 **Phones & tablets** — the whole screen is one big touch target &nbsp;·&nbsp; 💻 **Desktops & laptops** — full keyboard controls (space bar reads) with any webcam &nbsp;·&nbsp; 🌐 **Any modern browser** — nothing to install, same app everywhere
 
+🔑 **Bring your own AI.** The app has no AI of its own and no service behind it — you connect it to an AI provider with your own key: **Anthropic Claude** (paid, best reading quality), **Google Gemini** (free tier, no credit card), or **OpenAI** (paid). Your key and your photos go straight from your device to the provider you chose — nothing in between.
+
 This started as a small project for one person: a friend, a doctor in his eighties who lost his sight and could no longer read his books and medical materials. It grew into a complete blind-first reading app, and it's shared here so **anyone who needs it can use it** — no installation, no app store, no subscription. Just a phone, tablet, or computer with a browser, and an AI key (there's a genuinely free option).
 
 ## Use it yourself
@@ -202,7 +204,7 @@ There is no subscription — you pay Anthropic only for what is actually read, f
 
 ## Privacy
 
-Photos go to Anthropic's API to be read, over HTTPS, and are not used to train models under Anthropic's standard API terms. Nothing is stored by the app beyond the last photo (kept in memory so "Ask" works) and the settings on the device. Be mindful when photographing other people's documents.
+The app itself has no server and collects nothing. Photos go over HTTPS directly from your device to **the AI provider you connected** — Anthropic, Google, or OpenAI — to be read, under that provider's API terms (check the current data policy of whichever you choose; free tiers can have different terms than paid API use). Nothing is stored by the app beyond the last photo (kept in memory so "Ask" works) and the settings on the device. Be mindful when photographing other people's documents.
 
 ## Tech notes (for developers)
 

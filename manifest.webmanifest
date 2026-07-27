@@ -1,7 +1,7 @@
 {
   "name": "Blind Reader",
   "short_name": "Reader",
-  "description": "Point the camera at a page, sign, or label and hear it read aloud. Built for blind users. Touch controls on phones and tablets; keyboard controls on desktops and laptops.",
+  "description": "Point the camera at a page, sign, or label and hear it read aloud. Built for blind users. Touch controls on phones and tablets; keyboard controls on desktops and laptops. Reading is done by an AI service you connect with your own key — Claude, Gemini (free tier), or OpenAI.",
   "start_url": "index.html",
   "display": "fullscreen",
   "orientation": "portrait",
