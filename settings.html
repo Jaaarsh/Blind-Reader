@@ -17,6 +17,17 @@
     <h2>1. Connect the reading service</h2>
     <p>Blind Reader uses an AI vision service to understand what the camera sees. <strong>Anthropic Claude</strong> gives the best reading quality (recommended for medical and dense material). <strong>Google Gemini</strong> has a genuinely free tier — good when cost matters most.</p>
 
+    <p><strong>How connecting works, in plain words:</strong> the "API key" is like a library card from the AI company. You get it once from their website (free for Gemini), paste it below, and the app shows that card whenever it asks for a reading. Readings are counted against that card — never against this app, which has no accounts, no sign-up, and no service of its own. The card is saved only on this device.</p>
+
+    <details class="tech-details">
+      <summary>More detail, for the technically curious</summary>
+      <ul>
+        <li><strong>Direct with a key (the default):</strong> the key lives in this browser's local storage. Each reading goes straight from this device to the AI provider over HTTPS — <code>api.anthropic.com</code>, <code>generativelanguage.googleapis.com</code>, or <code>api.openai.com</code>. There is no middle server; the app cannot see or log anything.</li>
+        <li><strong>Setup link:</strong> "Create setup link" (bottom of this page) packs these settings, key included, into the part of a web address after the <code>#</code> symbol — which browsers never transmit to any server. Opening the link on another device saves the settings there and immediately scrubs the address bar. Treat the link with the same care as the key itself.</li>
+        <li><strong>Server mode:</strong> the optional single-file server (<code>server.js</code>, README Option B) holds the keys instead. Devices send readings to it — protected by a passcode and rate limiting — and it forwards them to the chosen provider using its own keys. Works with all three services; phones and PCs then need no keys at all.</li>
+      </ul>
+    </details>
+
     <p class="hint"><strong>Note:</strong> settings (including the key) are saved per browser, per device. A different browser or phone starts blank — set it up there too, easiest via the setup link at the bottom of this page. Also: the Ask (voice question) feature needs Chrome, Edge, or Safari — Firefox does not support voice input on any website.</p>
 
     <label for="provider">AI service</label>
