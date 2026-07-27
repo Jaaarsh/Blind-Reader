@@ -2,13 +2,15 @@
 
 # Blind Reader
 
-**Point the camera at anything with words on it — tap the screen — hear it read aloud.**
+**Point the camera at anything with words on it — tap the screen or press the space bar — hear it read aloud.**
 
-This started as a small project for one person: a friend, a doctor in his eighties who lost his sight and could no longer read his books and medical materials. It grew into a complete blind-first reading app, and it's shared here so **anyone who needs it can use it** — no installation, no app store, no subscription. Just a phone or PC with a browser, and an AI key (there's a genuinely free option).
+📱 **Phones & tablets** — the whole screen is one big touch target &nbsp;·&nbsp; 💻 **Desktops & laptops** — full keyboard controls (space bar reads) with any webcam &nbsp;·&nbsp; 🌐 **Any modern browser** — nothing to install, same app everywhere
+
+This started as a small project for one person: a friend, a doctor in his eighties who lost his sight and could no longer read his books and medical materials. It grew into a complete blind-first reading app, and it's shared here so **anyone who needs it can use it** — no installation, no app store, no subscription. Just a phone, tablet, or computer with a browser, and an AI key (there's a genuinely free option).
 
 ## Use it yourself
 
-- **Easiest:** open the app at **[jaaarsh.github.io/Blind-Reader](https://jaaarsh.github.io/Blind-Reader/)**, tap **Setup** (top right, twice), and add your own AI key — Google Gemini's is free, no credit card ([details below](#step-1--get-an-api-key-paid-best-quality-or-free)). Your key and settings stay on your own device; the app has no server and collects nothing.
+- **Easiest:** open the app at **[jaaarsh.github.io/Blind-Reader](https://jaaarsh.github.io/Blind-Reader/)** on any phone, tablet, or computer, tap **Setup** (top right, twice), and add your own AI key — Google Gemini's is free, no credit card ([details below](#step-1--get-an-api-key-paid-best-quality-or-free)). Your key and settings stay on your own device; the app has no server and collects nothing.
 - **Or run your own copy:** fork this repo, then in your fork go to **Settings → Pages → Source → "GitHub Actions"**. A minute later it's live at `https://<your-name>.github.io/Blind-Reader/`. Everything auto-deploys from there.
 
 It's a hobby project maintained for one user first — issues and suggestions are welcome, but there are no promises. MIT licensed: copy it, change it, host it for someone you love.
@@ -26,6 +28,7 @@ It understands what it sees (an AI vision model — Claude by default, Gemini or
 - Translates foreign-language text aloud and says what language it was.
 - **Ask**: press one button any time and ask out loud about whatever the camera sees — *"What page is this book open to?"*, *"What's the dosage?"*, *"Summarize this page"* — and hear the answer. No need to read first.
 - Gives spoken camera-aiming coaching: *"I can see the top of the page but the bottom is cut off. Tilt the phone down a little and tap again."*
+- **Runs everywhere**: on a phone or tablet, everything is done by touch — big targets, simple gestures. On a desktop or laptop with a webcam, everything is done by keyboard — space bar reads, Enter continues, A asks — and pressing any other key speaks the controls out loud.
 
 Speech output uses the phone's **free built-in voices** (works offline, costs nothing). The only running cost is the AI reading itself — roughly **a few cents per photo** on best quality, or **well under a cent** on the budget model.
 
