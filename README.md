@@ -6,6 +6,8 @@
 
 📱 **Phones & tablets** — the whole screen is one big touch target &nbsp;·&nbsp; 💻 **Desktops & laptops** — full keyboard controls (space bar reads) with any webcam &nbsp;·&nbsp; 🌐 **Any modern browser** — nothing to install, same app everywhere
 
+📚 **Built for serious reading, not just labels.** Designed from the start for educational and professional material — textbooks, medical and technical documents, multi-column pages, **charts, diagrams and figures described in full detail** (every label and marking, atlas-style) — as well as regular books, mail, prescriptions, and signs.
+
 🔑 **Bring your own AI.** The app has no AI of its own and no service behind it — you connect it to an AI provider with your own key: **Anthropic Claude** (paid, best reading quality), **Google Gemini** (free tier, no credit card), or **OpenAI** (paid). Your key and your photos go straight from your device to the provider you chose — nothing in between.
 
 This started as a small project for one person: a friend, a doctor in his eighties who lost his sight and could no longer read his books and medical materials. It grew into a complete blind-first reading app, and it's shared here so **anyone who needs it can use it** — no installation, no app store, no subscription. Just a phone, tablet, or computer with a browser, and an AI key (there's a genuinely free option).
@@ -76,6 +78,8 @@ Blind Reader works with three AI services — pick one:
 
 Choose the service and paste its key on the Setup page. You can switch services at any time — even keep a Claude key on his phone and a free Gemini key as a spare browser setup.
 
+> **Why a key at all?** None of the AI providers offer a "sign in with…" option that would let a web app use their AI on your behalf — an API key is the only door they provide, so pasting one key once is as easy as it can get. Blind Reader softens it three ways: the **Test button** tells you instantly if the key works, the **setup link** means it's pasted once ever (every other device gets configured by opening a link), and **server mode** (Option B below) means nobody pastes anything except the person hosting.
+
 ### Step 2 — Pick ONE of these two ways to run the app
 
 **Option A — simplest: key on the phone.**
@@ -89,14 +93,14 @@ Then connect the phone **without typing anything on it**:
 
 The key is stored only on that phone. You can also do it directly on the phone via its Setup page if you prefer.
 
-**Option B — key on a server (nothing secret on the phone).**
-On any machine with [Node.js](https://nodejs.org) (a home PC, Raspberry Pi, or a free-tier cloud box):
+**Option B — keys on a server (no keys on any phone or PC — the easiest setup for everyone else).**
+On any machine with [Node.js](https://nodejs.org) (a home PC, Raspberry Pi, or a free-tier cloud box), start the server with whichever provider keys you have — any subset works:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-your-key node server.js
+ANTHROPIC_API_KEY=sk-ant-… GEMINI_API_KEY=… OPENAI_API_KEY=… node server.js
 ```
 
-That's the whole server — no installation, no dependencies. Open `http://<that-machine>:8787` on the phone.
+That's the whole server — no installation, no dependencies. Open `http://<that-machine>:8787` on the phone: devices using it need **no key at all** (in Setup, just pick the AI service and leave the key empty). This is the way to host for family or a community — one person manages the keys, everyone else just opens the app.
 
 If the server is reachable from the internet, also set a passcode so strangers can't spend your API credit — and it rate-limits per address on top of that:
 

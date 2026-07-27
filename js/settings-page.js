@@ -22,7 +22,6 @@ function refreshProviderUI() {
   $('model-hint').textContent = $('provider').value === 'google'
     ? 'On the free tier, Flash allows far more readings per day than Pro.'
     : 'Rough cost per photo: a few cents on Best quality, well under a cent on Lower cost.';
-  $('server-options').style.display = $('provider').value === 'anthropic' ? '' : 'none';
 }
 $('provider').addEventListener('change', refreshProviderUI);
 refreshProviderUI();

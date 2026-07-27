@@ -5,57 +5,47 @@ import { PROVIDERS, providerOf } from './store.js';
 
 export async function pingService(s) {
   const provider = providerOf(s);
-  const budgetModel = PROVIDERS[provider].models.budget.id; // cheapest ping
+  const model = PROVIDERS[provider].models.budget.id; // cheapest ping
   const ping = 'Reply with the single word: ready';
-  let where = 'the reading service';
-  let res;
+  const direct = s.mode === 'direct' || (s.mode === 'auto' && s.apiKey);
 
+  let url, headers, payload;
+  let where = PROVIDERS[provider].label.split(' (')[0];
+  if (provider === 'google') {
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    headers = { 'content-type': 'application/json', 'x-goog-api-key': s.apiKey };
+    payload = {
+      contents: [{ role: 'user', parts: [{ text: ping }] }],
+      generationConfig: { maxOutputTokens: 20 },
+    };
+  } else if (provider === 'openai') {
+    url = 'https://api.openai.com/v1/chat/completions';
+    headers = { 'content-type': 'application/json', authorization: `Bearer ${s.apiKey}` };
+    payload = { model, max_completion_tokens: 20, messages: [{ role: 'user', content: ping }] };
+  } else {
+    url = 'https://api.anthropic.com/v1/messages';
+    headers = {
+      'content-type': 'application/json',
+      'x-api-key': s.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    };
+    payload = { model, max_tokens: 20, messages: [{ role: 'user', content: ping }] };
+  }
+
+  let res;
   try {
-    if (provider === 'google') {
-      where = 'Google Gemini';
-      res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${budgetModel}:generateContent`,
-        {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-goog-api-key': s.apiKey },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: ping }] }],
-            generationConfig: { maxOutputTokens: 20 },
-          }),
-        }
-      );
-    } else if (provider === 'openai') {
-      where = 'OpenAI';
-      res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${s.apiKey}` },
-        body: JSON.stringify({
-          model: budgetModel,
-          max_completion_tokens: 20,
-          messages: [{ role: 'user', content: ping }],
-        }),
-      });
+    if (direct) {
+      res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
     } else {
-      where = 'Claude';
-      const useDirect = s.mode === 'direct' || (s.mode === 'auto' && s.apiKey);
-      const body = { model: budgetModel, max_tokens: 20, messages: [{ role: 'user', content: ping }] };
-      if (useDirect) {
-        res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'x-api-key': s.apiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
-          },
-          body: JSON.stringify(body),
-        });
-      } else {
-        where = "this app's server";
-        const headers = { 'content-type': 'application/json' };
-        if (s.serverCode) headers['x-reader-code'] = s.serverCode;
-        res = await fetch('api/read', { method: 'POST', headers, body: JSON.stringify(body) });
-      }
+      where = "this app's server";
+      const proxyHeaders = { 'content-type': 'application/json' };
+      if (s.serverCode) proxyHeaders['x-reader-code'] = s.serverCode;
+      res = await fetch('api/read', {
+        method: 'POST',
+        headers: proxyHeaders,
+        body: JSON.stringify({ provider, model, payload }),
+      });
     }
   } catch {
     return { ok: false, where, status: 0, message: 'network' };

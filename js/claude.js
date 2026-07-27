@@ -70,7 +70,6 @@ class ApiError extends Error {
 const REQUEST_TIMEOUT_MS = 90000;
 
 function usingDirect(settings) {
-  if (providerOf(settings) !== 'anthropic') return true; // proxy is Anthropic-only
   return settings.mode === 'direct' || (settings.mode === 'auto' && settings.apiKey);
 }
 
@@ -106,86 +105,84 @@ async function callProvider({ system, parts, json = false }) {
   const provider = providerOf(settings);
   const model = modelId(settings);
 
+  // Build the provider-specific request.
+  let url, headers, payload;
   if (provider === 'google') {
-    const res = await timedFetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': settings.apiKey },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: json ? system + JSON_INSTRUCTION : system }] },
-          contents: [{
-            role: 'user',
-            parts: parts.map(p => p.image
-              ? { inline_data: { mime_type: 'image/jpeg', data: p.image } }
-              : { text: p.text }),
-          }],
-          generationConfig: { maxOutputTokens: 16000 },
-        }),
-      }
-    );
-    if (!res.ok) await failFrom(res);
-    const data = await res.json();
-    return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    headers = { 'content-type': 'application/json', 'x-goog-api-key': settings.apiKey };
+    payload = {
+      systemInstruction: { parts: [{ text: json ? system + JSON_INSTRUCTION : system }] },
+      contents: [{
+        role: 'user',
+        parts: parts.map(p => p.image
+          ? { inline_data: { mime_type: 'image/jpeg', data: p.image } }
+          : { text: p.text }),
+      }],
+      generationConfig: { maxOutputTokens: 16000 },
+    };
+  } else if (provider === 'openai') {
+    url = 'https://api.openai.com/v1/chat/completions';
+    headers = { 'content-type': 'application/json', authorization: `Bearer ${settings.apiKey}` };
+    payload = {
+      model,
+      max_completion_tokens: 16000,
+      messages: [
+        { role: 'system', content: json ? system + JSON_INSTRUCTION : system },
+        {
+          role: 'user',
+          content: parts.map(p => p.image
+            ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.image}` } }
+            : { type: 'text', text: p.text }),
+        },
+      ],
+    };
+  } else {
+    url = 'https://api.anthropic.com/v1/messages';
+    headers = {
+      'content-type': 'application/json',
+      'x-api-key': settings.apiKey,
+      'anthropic-version': '2023-06-01',
+      // Required opt-in for calling the Anthropic API from a browser.
+      'anthropic-dangerous-direct-browser-access': 'true',
+    };
+    payload = {
+      model,
+      max_tokens: 16000,
+      system,
+      messages: [{
+        role: 'user',
+        content: parts.map(p => p.image
+          ? { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: p.image } }
+          : { type: 'text', text: p.text }),
+      }],
+    };
+    if (json) payload.output_config = { format: { type: 'json_schema', schema: READ_SCHEMA } };
   }
 
-  if (provider === 'openai') {
-    const res = await timedFetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${settings.apiKey}` },
-      body: JSON.stringify({
-        model,
-        max_completion_tokens: 16000,
-        messages: [
-          { role: 'system', content: json ? system + JSON_INSTRUCTION : system },
-          {
-            role: 'user',
-            content: parts.map(p => p.image
-              ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.image}` } }
-              : { type: 'text', text: p.text }),
-          },
-        ],
-      }),
-    });
-    if (!res.ok) await failFrom(res);
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || '';
-  }
-
-  // Anthropic (default) — direct from the browser, or via this app's proxy.
-  const body = {
-    model,
-    max_tokens: 16000,
-    system,
-    messages: [{
-      role: 'user',
-      content: parts.map(p => p.image
-        ? { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: p.image } }
-        : { type: 'text', text: p.text }),
-    }],
-  };
-  if (json) body.output_config = { format: { type: 'json_schema', schema: READ_SCHEMA } };
-
+  // Send it — straight to the provider, or through this app's key-holding
+  // server (which works for all three providers).
   let res;
   if (usingDirect(settings)) {
-    res = await timedFetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': settings.apiKey,
-        'anthropic-version': '2023-06-01',
-        // Required opt-in for calling the Anthropic API from a browser.
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify(body),
-    });
+    res = await timedFetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
   } else {
-    const headers = { 'content-type': 'application/json' };
-    if (settings.serverCode) headers['x-reader-code'] = settings.serverCode;
-    res = await timedFetch('api/read', { method: 'POST', headers, body: JSON.stringify(body) });
+    const proxyHeaders = { 'content-type': 'application/json' };
+    if (settings.serverCode) proxyHeaders['x-reader-code'] = settings.serverCode;
+    res = await timedFetch('api/read', {
+      method: 'POST',
+      headers: proxyHeaders,
+      body: JSON.stringify({ provider, model, payload }),
+    });
   }
   if (!res.ok) await failFrom(res);
   const data = await res.json();
+
+  // Read the answer text out of the provider-shaped response.
+  if (provider === 'google') {
+    return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+  }
+  if (provider === 'openai') {
+    return data.choices?.[0]?.message?.content || '';
+  }
   const block = (data.content || []).find(b => b.type === 'text');
   return block ? block.text : '';
 }
