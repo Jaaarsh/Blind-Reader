@@ -1,8 +1,23 @@
+<p align="center"><img src="icons/icon.svg" width="110" alt="Blind Reader icon: an open book with sound waves"></p>
+
 # Blind Reader
+
+**Point the camera at anything with words on it — tap the screen — hear it read aloud.**
+
+This started as a small project for one person: a friend, a doctor in his eighties who lost his sight and could no longer read his books and medical materials. It grew into a complete blind-first reading app, and it's shared here so **anyone who needs it can use it** — no installation, no app store, no subscription. Just a phone or PC with a browser, and an AI key (there's a genuinely free option).
+
+## Use it yourself
+
+- **Easiest:** open the app at **[jaaarsh.github.io/Blind-Reader](https://jaaarsh.github.io/Blind-Reader/)**, tap **Setup** (top right, twice), and add your own AI key — Google Gemini's is free, no credit card ([details below](#step-1--get-an-api-key-paid-best-quality-or-free)). Your key and settings stay on your own device; the app has no server and collects nothing.
+- **Or run your own copy:** fork this repo, then in your fork go to **Settings → Pages → Source → "GitHub Actions"**. A minute later it's live at `https://<your-name>.github.io/Blind-Reader/`. Everything auto-deploys from there.
+
+It's a hobby project maintained for one user first — issues and suggestions are welcome, but there are no promises. MIT licensed: copy it, change it, host it for someone you love.
+
+---
 
 A camera reader **built blind-first**. Point the phone at a page, a sign, a poster, a pill bottle, a menu — tap anywhere on the screen — and hear it read aloud in a natural voice. No sight is needed to operate it: the app talks, buzzes, and beeps its way through everything, including telling you *how to move the phone* when a photo doesn't come out.
 
-It understands what it sees (via Claude, Anthropic's AI), so it does far more than OCR:
+It understands what it sees (an AI vision model — Claude by default, Gemini or GPT if you prefer), so it does far more than OCR:
 
 - Reads books and documents in proper reading order, page by page ("turn the page and tap again").
 - Reads signs and posters with the important part first.
@@ -205,3 +220,7 @@ server.js           optional zero-dependency key-holding proxy + static server
 sw.js               offline shell caching
 manifest.webmanifest, icons/   installable-app packaging
 ```
+
+## License
+
+[MIT](LICENSE) — free for anyone to use, copy, change, and re-host. If you set this up for someone who needs it, that's exactly what it's for.
