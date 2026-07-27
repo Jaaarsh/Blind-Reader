@@ -136,6 +136,34 @@ The same app works great on a computer — often better for someone who prefers 
 
 A useful desk setup: book flat on the desk, webcam above it, space bar within reach — reading a book becomes *turn page, press space, listen*.
 
+**One-click kiosk shortcut** (opens the reader full-screen with nothing else on screen):
+
+- **Windows:** right-click the desktop → New → Shortcut, and paste as the location (adjust the URL if yours differs):
+  ```
+  "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --app=https://jaaarsh.github.io/Blind-Reader/
+  ```
+  Name it "Reader". Opening that shortcut puts the reader full-screen; Alt+F4 exits.
+- **Mac:** in Terminal, run `nano ~/Desktop/Reader.command`, paste the line below, save, then run `chmod +x ~/Desktop/Reader.command` once. Double-clicking "Reader" on the desktop opens the reader full-screen (⌘Q exits):
+  ```
+  open -na "Google Chrome" --args --kiosk --app=https://jaaarsh.github.io/Blind-Reader/
+  ```
+
+## Recommended desk setup (hardware that matters more than software)
+
+- **A desk lamp aimed at the page.** Poor light is the #1 cause of bad readings.
+- **A gooseneck phone holder or webcam stand** pointing straight down, so reading is hands-free.
+- **A book weight or page holder** (a few dollars) — curled pages are the #2 cause of misreads.
+- **A charging cradle where the reader lives.** The phone should have one home, always charging.
+- If hearing is reduced: pick the clearest voice in Setup, slightly slower, and consider a small external speaker on the PC.
+
+## Beyond this app (the rest of the toolkit)
+
+Blind Reader is best at **personal material**: medical texts, mail, labels, notes, anything that exists only on your desk. For other needs, pair it with:
+
+- **[Bookshare](https://www.bookshare.org)** — huge accessible library of published books, free for US readers with a qualifying print disability (a doctor's certification qualifies). Whole books, no camera.
+- **NLS BARD** ([loc.gov/nls](https://www.loc.gov/nls/)) — the Library of Congress free talking-book program.
+- **[Be My Eyes](https://www.bemyeyes.com)** — free video call to a sighted volunteer for anything a camera app can't handle.
+
 ## Troubleshooting
 
 **Start with the built-in [Helper's Guide](helper.html)** (`…/helper.html` on your deployed site) — plain words, large print, printable, written for a non-technical helper. Its one-button check-up tests the key, internet, voice, and camera and says what's wrong in plain language.
