@@ -20,7 +20,7 @@ function refreshProviderUI() {
   modelSelect.options[0].textContent = p.models.best.label;
   modelSelect.options[1].textContent = p.models.budget.label;
   $('model-hint').textContent = $('provider').value === 'google'
-    ? 'On the free tier, Flash allows far more readings per day than Pro.'
+    ? 'Both choices work on the free tier; Flash Lite allows the most readings per day.'
     : 'Rough cost per photo: a few cents on Best quality, well under a cent on Lower cost.';
 }
 $('provider').addEventListener('change', refreshProviderUI);

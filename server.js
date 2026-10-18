@@ -39,7 +39,7 @@ const UPSTREAMS = {
     key: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '',
     host: 'generativelanguage.googleapis.com',
     path: model => `/v1beta/models/${model}:generateContent`,
-    models: new Set(['gemini-2.5-pro', 'gemini-2.5-flash']),
+    models: new Set(['gemini-3.8-flash', 'gemini-3.5-flash-lite']),
     headers: key => ({ 'x-goog-api-key': key }),
     cap: p => {
       p.generationConfig = p.generationConfig || {};
@@ -50,7 +50,7 @@ const UPSTREAMS = {
     key: process.env.OPENAI_API_KEY || '',
     host: 'api.openai.com',
     path: () => '/v1/chat/completions',
-    models: new Set(['gpt-5', 'gpt-5-mini']),
+    models: new Set(['gpt-5.5', 'gpt-5.4-mini']),
     headers: key => ({ authorization: `Bearer ${key}` }),
     cap: p => { p.max_completion_tokens = Math.min(Number(p.max_completion_tokens) || 1024, MAX_TOKENS_CAP); },
   },

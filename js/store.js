@@ -19,16 +19,16 @@ export const PROVIDERS = {
     label: 'Google Gemini (free tier available)',
     keyHint: 'Create a free key at aistudio.google.com/apikey — no credit card needed. The free tier has a daily limit; Flash has the roomiest free quota.',
     models: {
-      best:   { id: 'gemini-2.5-pro',   label: 'Best quality (Gemini 2.5 Pro) — small free daily quota' },
-      budget: { id: 'gemini-2.5-flash', label: 'Faster (Gemini 2.5 Flash) — largest free quota' },
+      best:   { id: 'gemini-3.8-flash',      label: 'Best quality (Gemini 3.8 Flash) — works on the free tier' },
+      budget: { id: 'gemini-3.5-flash-lite', label: 'Fastest (Gemini 3.5 Flash Lite) — biggest free daily quota' },
     },
   },
   openai: {
     label: 'OpenAI (paid)',
     keyHint: 'Create a key at platform.openai.com (starts with sk-). Paid: roughly cents per page.',
     models: {
-      best:   { id: 'gpt-5',      label: 'Best quality (GPT-5)' },
-      budget: { id: 'gpt-5-mini', label: 'Lower cost (GPT-5 mini)' },
+      best:   { id: 'gpt-5.5',      label: 'Best quality (GPT-5.5)' },
+      budget: { id: 'gpt-5.4-mini', label: 'Lower cost (GPT-5.4 mini)' },
     },
   },
 };
