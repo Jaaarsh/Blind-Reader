@@ -188,6 +188,10 @@ Blind Reader is best at **personal material**: medical texts, mail, labels, note
 - **NLS BARD** ([loc.gov/nls](https://www.loc.gov/nls/)) — the Library of Congress free talking-book program.
 - **[Be My Eyes](https://www.bemyeyes.com)** — free video call to a sighted volunteer for anything a camera app can't handle.
 
+## A word of care
+
+Blind Reader is accurate enough to be genuinely useful every day — but it is still an AI looking at a photograph, and photographs can be misread. For anything where a mistake would matter — **medication doses, medical decisions, legal or financial papers** — treat the reading as a helpful first pass and verify the critical number or name with a pharmacist, a doctor's office, or a sighted person. The app is built with this in mind (it reads dosages digit by digit and says when it is unsure), but no AI reader should be the last word on a dose.
+
 ## Troubleshooting
 
 **Start with the built-in [Helper's Guide](helper.html)** (`…/helper.html` on your deployed site) — plain words, large print, printable, written for a non-technical helper. Its one-button check-up tests the key, internet, voice, and camera and says what's wrong in plain language.
